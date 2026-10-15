@@ -4,6 +4,7 @@
 use std::{collections::HashMap, sync::OnceLock};
 
 mod ar;
+mod bo;
 mod de;
 mod it;
 mod ja;
@@ -14,6 +15,7 @@ mod uk;
 /// Supported interface languages: (code, name in that language).
 pub const LANGUAGES: &[(&str, &str)] = &[
     ("", "English"),
+    ("bo", "བོད་ཡིག · Tibetan"),
     ("de", "Deutsch"),
     ("fr", "Français"),
     ("es", "Español"),
@@ -3132,6 +3134,10 @@ fn column(lang: &str) -> Option<usize> {
 
 /// `s` in `lang` (English, or the string itself, when there's no translation).
 pub fn tr<'a>(lang: &str, s: &'a str) -> &'a str {
+    static TIBETAN: OnceLock<HashMap<&'static str, &'static str>> = OnceLock::new();
+    if lang == "bo" {
+        return TIBETAN.get_or_init(|| bo::TABLE.iter().copied().collect()).get(s).copied().unwrap_or(s);
+    }
     static GERMAN: OnceLock<HashMap<&'static str, &'static str>> = OnceLock::new();
     static JAPANESE: OnceLock<HashMap<&'static str, &'static str>> = OnceLock::new();
     static TRANSLATIONS: OnceLock<HashMap<&'static str, [&'static str; 5]>> = OnceLock::new();

@@ -458,12 +458,13 @@ pub(crate) fn font_definitions(craft: &'static [designcraft_fonts::CraftFont], l
     japanese.sort_by_key(|f| (f.family != "BIZ UDPGothic", f.style != "Regular"));
     let chinese = pick("Hans");
     let arabic = pick("Arab");
+    let tibetan = pick("Tibt");
     let name = |f: &designcraft_fonts::CraftFont| format!("craft-{}-{}", f.family, f.style);
     for f in japanese.iter().chain(&chinese) {
         // CJK faces sit on the Latin baseline (see `baseline_tweak`).
         fonts.font_data.insert(name(f), Arc::new(FontData { tweak: baseline_tweak(f.bytes, 0), ..FontData::from_static(f.bytes) }));
     }
-    for f in &arabic {
+    for f in arabic.iter().chain(&tibetan) {
         add(&mut fonts, &name(f), f.bytes);
     }
     // Han characters take the forms of the interface language: Chinese faces first for Chinese.
@@ -475,7 +476,7 @@ pub(crate) fn font_definitions(craft: &'static [designcraft_fonts::CraftFont], l
             ja.sort_by_key(|f| (f.family != "BIZ UDPGothic", f.style != "Bold"));
         }
         let (first, second) = if zh { (&chinese, &ja) } else { (&ja, &chinese) };
-        stack.extend(first.iter().chain(second).chain(&arabic).map(|f| name(f)));
+        stack.extend(first.iter().chain(second).chain(&arabic).chain(&tibetan).map(|f| name(f)));
     }
     // Arabic runs (rtl.rs): the Arabic face first, so letters and spaces shape as one run.
     for family in ["arabic", "arabic-semibold"] {
@@ -759,6 +760,29 @@ mod ukrainian_font_tests {
             for character in &characters {
                 assert_ne!(face.glyph_for(*character), 0, "missing {character} in {name}");
             }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tibetan_tests {
+    #[test]
+    fn embedded_tibetan_font_is_registered_in_all_ui_families() {
+        let craft = designcraft_fonts::CRAFT_FONTS;
+        let Some(face) = craft.iter().find(|f| f.scripts.contains(&"Tibt")) else {
+            return;
+        };
+        let db = designcraft_fonts::FontDb::global();
+        assert!(db.has_family("Noto Serif Tibetan"));
+        let document_face = db.face("Noto Serif Tibetan", "Regular");
+        for c in "ནང་ཆེན་བཀྲ་ཤིས།".chars() {
+            assert!(document_face.covers(c), "missing Tibetan glyph {c}");
+        }
+        let defs = super::font_definitions(craft, "bo");
+        let name = format!("craft-{}-{}", face.family, face.style);
+        assert!(defs.font_data.contains_key(&name));
+        for family in [egui::FontFamily::Proportional, egui::FontFamily::Monospace, egui::FontFamily::Name("semibold".into())] {
+            assert!(defs.families.get(&family).is_some_and(|stack| stack.contains(&name)));
         }
     }
 }

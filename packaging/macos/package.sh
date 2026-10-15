@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build, sign and (optionally) notarize the macOS release artifacts:
 #
-#   $DIST/designcraft-<version>-macos-<arch>.dmg          DesignCraft.app on a drag-to-Applications DMG
+#   $DIST/designcraft-<version>-macos-<arch>.dmg          Tibetan Design Layout.app on a drag-to-Applications DMG
 #   $DIST/designcraft-cli-<version>-macos-<arch>.zip      the headless CLI
 #
 # Usage: packaging/macos/package.sh [--arch universal|aarch64|x86_64] [--skip-build]
@@ -16,6 +16,7 @@ set -euo pipefail
 # shellcheck source=../env.sh
 . "$(dirname "${BASH_SOURCE[0]}")/../env.sh"
 HERE="$ROOT/packaging/macos"
+. "$ROOT/scripts/prepare-tibetan-font.sh"
 
 ARCH=universal
 SKIP_BUILD=0
@@ -39,9 +40,9 @@ export MACOSX_DEPLOYMENT_TARGET=11.0
 IDENTITY="${MACOS_SIGN_IDENTITY:--}"
 SHORT_VERSION="${VERSION%%-*}"
 WORK="$CARGO_TARGET_DIR/macos-package"
-APP="$WORK/DesignCraft.app"
-DMG="$DIST/designcraft-$VERSION-macos-$ARCH.dmg"
-CLI_ZIP="$DIST/designcraft-cli-$VERSION-macos-$ARCH.zip"
+APP="$WORK/Tibetan Design Layout.app"
+DMG="$DIST/tibetan-design-layout-$VERSION-macos-$ARCH.dmg"
+CLI_ZIP="$DIST/tibetan-design-layout-cli-$VERSION-macos-$ARCH.zip"
 
 NOTARIZE=0
 if [ "$IDENTITY" = "-" ]; then
@@ -97,12 +98,21 @@ notarize() {
   fi
 }
 
-# ---- DesignCraft.app ----------------------------------------------------------------------------
+# ---- Tibetan Design Layout.app ----------------------------------------------------------------------------
 echo "==> assembling $APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 # Executable and icon carry the display name (CFBundleExecutable / CFBundleIconFile).
-cp "$WORK/bin/designcraft" "$APP/Contents/MacOS/DesignCraft"
-cp "$ROOT/assets/app-icon/designcraft.icns" "$APP/Contents/Resources/DesignCraft.icns"
+cp "$WORK/bin/designcraft" "$APP/Contents/MacOS/Tibetan Design Layout"
+ICONSET="$WORK/Tibetan Design Layout.iconset"
+mkdir -p "$ICONSET"
+for size in 16 32 128 256 512; do
+  sips -z "$size" "$size" "$ROOT/assets/app-icon/designcraft-1024.png" --out "$ICONSET/icon_${size}x${size}.png" >/dev/null
+  double=$((size * 2))
+  sips -z "$double" "$double" "$ROOT/assets/app-icon/designcraft-1024.png" --out "$ICONSET/icon_${size}x${size}@2x.png" >/dev/null
+done
+iconutil -c icns -o "$APP/Contents/Resources/Tibetan Design Layout.icns" "$ICONSET"
+mkdir -p "$APP/Contents/Resources/Licenses"
+cp "$ROOT/NOTICE" "$ROOT/LICENSE-MIT" "$ROOT/LICENSE-APACHE" "$ROOT/ASSETS.md" "$ROOT/assets/app-icon/OFL-Tibetan.txt" "$APP/Contents/Resources/Licenses/"
 # Licences of the embedded craft-fonts fonts (only when built with CRAFT_FONTS_DIR).
 copy_font_licences "$APP/Contents/Resources"
 sed -e "s/@VERSION@/$VERSION/g" -e "s/@SHORT_VERSION@/$SHORT_VERSION/g" \
@@ -113,7 +123,7 @@ printf 'APPL????' >"$APP/Contents/PkgInfo"
 
 # Sign inside-out: nested code first, then the bundle itself (no --deep on the final signature).
 # Today the only nested code is the main executable; frameworks/helpers would be signed here too.
-sign --options runtime --entitlements "$HERE/entitlements.plist" "$APP/Contents/MacOS/DesignCraft"
+sign --options runtime --entitlements "$HERE/entitlements.plist" "$APP/Contents/MacOS/Tibetan Design Layout"
 sign --options runtime --entitlements "$HERE/entitlements.plist" "$APP"
 codesign --verify --strict --deep --verbose=2 "$APP"
 
@@ -129,12 +139,9 @@ fi
 echo "==> building $DMG"
 STAGE="$WORK/dmg"
 mkdir -p "$STAGE"
-ditto "$APP" "$STAGE/DesignCraft.app"
+ditto "$APP" "$STAGE/Tibetan Design Layout.app"
 ln -s /Applications "$STAGE/Applications"
-# Finder window layout: background, icon size and positions (packaging/macos/dmg/README.md).
-mkdir -p "$STAGE/.background"
-cp "$HERE/dmg/background.tiff" "$STAGE/.background/background.tiff"
-cp "$HERE/dmg/dmg-layout.DS_Store" "$STAGE/.DS_Store"
+# Use Finder defaults with Tibetan Design Layout branding.
 rm -f "$DMG"
 # `hdiutil create -srcfolder` writes the files as they are. `makehybrid -hfs` gave every file a
 # com.apple.FinderInfo, which `codesign --verify --strict` rejects as "Finder information, or
@@ -156,7 +163,7 @@ hdiutil_retry() {
     sleep $((attempt * 10))
   done
 }
-hdiutil_retry create create -srcfolder "$STAGE" -volname "DesignCraft" -fs HFS+ -format UDZO -imagekey zlib-level=9 -ov "$DMG"
+hdiutil_retry create create -srcfolder "$STAGE" -volname "Tibetan Design Layout" -fs HFS+ -format UDZO -imagekey zlib-level=9 -ov "$DMG"
 sign "$DMG"
 codesign --verify --strict --verbose=2 "$DMG"
 # The app inside the image must still pass --strict, so a makehybrid-style regression can't ship.
@@ -164,7 +171,7 @@ MOUNT="$WORK/dmg-check"
 rm -rf "$MOUNT"
 mkdir -p "$MOUNT"
 hdiutil_retry attach attach -nobrowse -readonly -mountpoint "$MOUNT" "$DMG" >/dev/null
-if ! codesign --verify --strict --deep --verbose=2 "$MOUNT/DesignCraft.app"; then
+if ! codesign --verify --strict --deep --verbose=2 "$MOUNT/Tibetan Design Layout.app"; then
   hdiutil_retry detach detach "$MOUNT" >/dev/null || true
   exit 1
 fi
@@ -178,7 +185,7 @@ fi
 
 # ---- CLI ---------------------------------------------------------------------------------------
 echo "==> building $CLI_ZIP"
-CLI_DIR="$WORK/designcraft-cli-$VERSION-macos-$ARCH"
+CLI_DIR="$WORK/tibetan-design-layout-cli-$VERSION-macos-$ARCH"
 mkdir -p "$CLI_DIR"
 cp "$WORK/bin/designcraft-cli" "$CLI_DIR/"
 copy_docs "$CLI_DIR"

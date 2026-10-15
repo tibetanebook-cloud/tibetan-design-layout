@@ -120,7 +120,7 @@ pub fn app_bar(app: &mut DesignApp, ui: &mut egui::Ui) {
                         }
                         ui.add_space(8.0);
                         // Always one click away: the ArtCraft community Discord.
-                        if crate::about::discord_button(ui, "Discord", vec2(78.0, 22.0)) {
+                        if crate::about::discord_button(ui, "Tibetan apps", vec2(78.0, 22.0)) {
                             let _ = app.run("help.discord", json!({}));
                         }
                         tools_start = ui.min_rect().min.x;
@@ -134,8 +134,8 @@ pub fn app_bar(app: &mut DesignApp, ui: &mut egui::Ui) {
             });
             // Centred title.
             let title = match app.session.active() {
-                Some(d) => format!("DesignCraft — {}", crate::rtl::isolate(&d.title())),
-                None => "DesignCraft".to_string(),
+                Some(d) => format!("Tibetan Design Layout — {}", crate::rtl::isolate(&d.title())),
+                None => "Tibetan Design Layout".to_string(),
             };
             // Centred between the menus and the right-hand controls; left out when it won't fit.
             let galley = crate::rtl::plain(ui.ctx(), &title, egui::FontId::proportional(11.5), t.text);
@@ -746,7 +746,7 @@ pub fn start_screen(app: &mut DesignApp, ui: &mut egui::Ui) {
         |ui| {
             ui.label(crate::rtl::widget(
                 ui,
-                egui::RichText::new(crate::i18n::tr(&app.ui.language, "Welcome to DesignCraft")).font(semibold(28.0)).color(t.text_strong),
+                egui::RichText::new(crate::i18n::tr(&app.ui.language, "Welcome to Tibetan Design Layout")).font(semibold(28.0)).color(t.text_strong),
             ));
             ui.label(crate::rtl::widget(
                 ui,
@@ -784,14 +784,23 @@ pub fn start_screen(app: &mut DesignApp, ui: &mut egui::Ui) {
                     .add(
                         egui::Button::new(crate::rtl::widget(
                             ui,
-                            egui::RichText::new(crate::i18n::tr(&app.ui.language, "  Open sample magazine  ")).size(14.0),
+                            egui::RichText::new(crate::i18n::tr(&app.ui.language, "  Open Pecha sample  ")).size(14.0),
                         ))
                         .corner_radius(16.0)
                         .min_size(vec2(0.0, 32.0)),
                     )
                     .clicked()
                 {
-                    let _ = app.run("file.newSample", json!({}));
+                    let _ = app.run("template.pechaClassic", json!({}));
+                }
+            });
+            ui.add_space(12.0);
+            ui.menu_button(crate::i18n::tr(&app.ui.language, "Template Library"), |ui| {
+                for command in designcraft_engine::command_specs().iter().filter(|c| c.id.starts_with("template.")) {
+                    if ui.button(crate::rtl::widget(ui, crate::i18n::tr(&app.ui.language, command.label))).clicked() {
+                        let _ = app.run(command.id, json!({}));
+                        ui.close();
+                    }
                 }
             });
             ui.add_space(20.0);
@@ -846,7 +855,7 @@ fn community_card(app: &mut DesignApp, ui: &mut egui::Ui) {
                 ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Wrap);
                 ui.label(crate::rtl::widget(
                     ui,
-                    egui::RichText::new(crate::i18n::tr(&app.ui.language, "Join the ArtCraft community")).font(semibold(14.0)).color(t.text_strong),
+                    egui::RichText::new(crate::i18n::tr(&app.ui.language, "Tibetan apps and resources")).font(semibold(14.0)).color(t.text_strong),
                 ));
                 ui.label(crate::rtl::widget(
                     ui,
@@ -856,7 +865,7 @@ fn community_card(app: &mut DesignApp, ui: &mut egui::Ui) {
                 ));
                 ui.add_space(4.0);
                 ui.horizontal(|ui| {
-                    for (text, id) in [("DesignCraft page", "help.appPage"), ("GitHub", "help.github"), ("getartcraft.com", "help.website")] {
+                    for (text, id) in [("Tibetan Design Layout page", "help.appPage"), ("GitHub", "help.github"), ("nangchen.com", "help.website")] {
                         let url = designcraft_engine::links::get(&id[5..]).unwrap_or_default();
                         let l = ui
                             .add(egui::Label::new(egui::RichText::new(text).size(12.0).color(t.accent).underline()).sense(Sense::click()))
@@ -870,7 +879,7 @@ fn community_card(app: &mut DesignApp, ui: &mut egui::Ui) {
                 });
             });
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if crate::about::discord_button(ui, crate::i18n::tr(&app.ui.language, "Join our Discord"), BUTTON) {
+                if crate::about::discord_button(ui, crate::i18n::tr(&app.ui.language, "More Tibetan apps"), BUTTON) {
                     let _ = app.run("help.discord", json!({}));
                 }
             });

@@ -5,15 +5,15 @@ use serde_json::{Value, json};
 /// The app's slug on getartcraft.com and GitHub.
 pub const APP: &str = "designcraft";
 /// The ArtCraft community Discord.
-pub const DISCORD: &str = "https://discord.gg/artcraft";
+pub const DISCORD: &str = "https://studytibetan.com";
 /// The ArtCraft website.
-pub const WEBSITE: &str = "https://getartcraft.com";
+pub const WEBSITE: &str = "https://nangchen.com";
 /// DesignCraft's page on the ArtCraft website.
-pub const APP_PAGE: &str = "https://getartcraft.com/apps/designcraft";
+pub const APP_PAGE: &str = "https://nangchen.com";
 /// DesignCraft's source repository.
-pub const GITHUB: &str = "https://github.com/storytold/designcraft";
+pub const GITHUB: &str = "https://github.com/tibetanebook-cloud/tibetan-design-layout";
 /// Where to report bugs and request features.
-pub const ISSUES: &str = "https://github.com/storytold/designcraft/issues";
+pub const ISSUES: &str = "https://github.com/tibetanebook-cloud/tibetan-design-layout/issues";
 
 /// All links as JSON (the `app.links` command).
 pub fn all() -> Value {
@@ -44,8 +44,8 @@ mod tests {
 
     #[test]
     fn links_follow_the_app_slug() {
-        assert!(APP_PAGE.ends_with(&format!("/apps/{APP}")));
-        assert!(GITHUB.ends_with(&format!("/storytold/{APP}")));
+        assert_eq!(APP_PAGE, "https://nangchen.com");
+        assert_eq!(GITHUB, "https://github.com/tibetanebook-cloud/tibetan-design-layout");
         assert!(ISSUES.starts_with(GITHUB));
         for k in ["discord", "website", "appPage", "github", "issues"] {
             assert!(get(k).is_some_and(|u| u.starts_with("https://")), "{k}");

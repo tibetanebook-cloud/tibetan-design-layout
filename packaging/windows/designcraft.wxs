@@ -1,57 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  DesignCraft MSI (WiX Toolset v5: `dotnet tool install -g wix`). Built by package.ps1:
+  Tibetan Design Layout MSI (WiX Toolset v5: `dotnet tool install -g wix`). Built by package.ps1:
 
     wix build designcraft.wxs -arch x64 -d Version=1.2.3 -d BinDir=... -d IconPath=... -o out.msi
 
-  Per-machine install into Program Files, a Start Menu shortcut, `.pcraft` owned by DesignCraft,
-  and DesignCraft offered under "Open with" for PSD/PSB and the image formats it reads (without
+  Per-machine install into Program Files, a Start Menu shortcut, `.pcraft` owned by Tibetan Design Layout,
+  and Tibetan Design Layout offered under "Open with" for PSD/PSB and the image formats it reads (without
   taking over the user's default app for them).
 -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Package
-      Name="DesignCraft"
-      Manufacturer="Learning Machines LLC"
+      Name="Tibetan Design Layout"
+      Manufacturer="StudyTibetan"
       Version="$(var.Version)"
-      UpgradeCode="49E87D30-BB68-4896-AA1D-F45C833CFC3C"
+      UpgradeCode="72FA5CDD-C87E-4540-A8E4-AD275D0C4E0A"
       Scope="perMachine"
       Compressed="yes"
       Language="1033">
-    <SummaryInformation Description="DesignCraft page layout and publishing" Manufacturer="Learning Machines LLC" />
+    <SummaryInformation Description="Tibetan Design Layout page layout and publishing" Manufacturer="StudyTibetan" />
     <!-- Same-version upgrades let successive pre-releases of one X.Y.Z replace each other
          (MSI versions are numeric, so 1.2.3-rc.1 and 1.2.3-rc.2 are both 1.2.3). -->
     <MajorUpgrade AllowSameVersionUpgrades="yes"
-        DowngradeErrorMessage="A newer version of DesignCraft is already installed." />
+        DowngradeErrorMessage="A newer version of Tibetan Design Layout is already installed." />
     <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
 
     <Icon Id="DesigncraftIcon.ico" SourceFile="$(var.IconPath)" />
     <Property Id="ARPPRODUCTICON" Value="DesigncraftIcon.ico" />
-    <Property Id="ARPURLINFOABOUT" Value="https://getartcraft.com/apps/designcraft" />
-    <Property Id="ARPURLUPDATEINFO" Value="https://getartcraft.com/apps/designcraft" />
-    <Property Id="ARPHELPLINK" Value="https://discord.gg/artcraft" />
+    <Property Id="ARPURLINFOABOUT" Value="https://nangchen.com" />
+    <Property Id="ARPURLUPDATEINFO" Value="https://nangchen.com" />
+    <Property Id="ARPHELPLINK" Value="https://studytibetan.com" />
 
     <StandardDirectory Id="ProgramFiles6432Folder">
-      <Directory Id="INSTALLFOLDER" Name="DesignCraft" />
+      <Directory Id="INSTALLFOLDER" Name="Tibetan Design Layout" />
     </StandardDirectory>
     <StandardDirectory Id="ProgramMenuFolder" />
 
-    <Feature Id="Main" Title="DesignCraft" Level="1">
+    <Feature Id="Main" Title="Tibetan Design Layout" Level="1">
       <ComponentGroupRef Id="DesigncraftFiles" />
     </Feature>
   </Package>
 
   <Fragment>
     <ComponentGroup Id="DesigncraftFiles" Directory="INSTALLFOLDER">
-      <Component Id="DesigncraftApp" Guid="DE018EF3-EE87-4E36-9F76-0B7B060A195E">
-        <File Id="DesigncraftExe" Source="$(var.BinDir)\designcraft.exe" KeyPath="yes">
-          <Shortcut Id="StartMenuShortcut" Directory="ProgramMenuFolder" Name="DesignCraft"
-              Description="DesignCraft page layout and publishing" WorkingDirectory="INSTALLFOLDER" Advertise="yes"
+      <Component Id="DesigncraftApp" Guid="6E1B7513-A538-48F0-810C-5D961330609A">
+        <File Id="DesigncraftExe" Source="$(var.BinDir)\Tibetan Design Layout.exe" KeyPath="yes">
+          <Shortcut Id="StartMenuShortcut" Directory="ProgramMenuFolder" Name="Tibetan Design Layout"
+              Description="Tibetan Design Layout page layout and publishing" WorkingDirectory="INSTALLFOLDER" Advertise="yes"
               Icon="DesigncraftIcon.ico" IconIndex="0" />
         </File>
 
-        <RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\App Paths\designcraft.exe" Value="[#DesigncraftExe]" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\App Paths\Tibetan Design Layout.exe" Value="[#DesigncraftExe]" Type="string" />
       </Component>
 
+      <Component Id="TibetanNotice0"><File Id="TibetanNoticeFile0" Source="$(var.BinDir)\LICENSE-MIT" KeyPath="yes" /></Component>
+      <Component Id="TibetanNotice1"><File Id="TibetanNoticeFile1" Source="$(var.BinDir)\LICENSE-APACHE" KeyPath="yes" /></Component>
+      <Component Id="TibetanNotice2"><File Id="TibetanNoticeFile2" Source="$(var.BinDir)\NOTICE" KeyPath="yes" /></Component>
+      <Component Id="TibetanNotice3"><File Id="TibetanNoticeFile3" Source="$(var.BinDir)\ASSETS.md" KeyPath="yes" /></Component>
+      <Component Id="TibetanNotice4"><File Id="TibetanNoticeFile4" Source="$(var.BinDir)\OFL-Tibetan.txt" KeyPath="yes" /></Component>
       <Component Id="DesigncraftCli">
         <File Id="DesigncraftCliExe" Source="$(var.BinDir)\designcraft-cli.exe" KeyPath="yes" />
       </Component>

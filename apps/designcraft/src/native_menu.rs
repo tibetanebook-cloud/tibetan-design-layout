@@ -1,4 +1,4 @@
-//! macOS: DesignCraft's menu tree as the native system menu bar (like InDesign on the Mac).
+//! macOS: Tibetan Design Layout's menu tree as the native system menu bar (like InDesign on the Mac).
 //! Items dispatch through the same command path as the in-window menus; enablement and check
 //! marks are refreshed a few times per second.
 
@@ -46,12 +46,12 @@ impl NativeMenu {
         let mut items = HashMap::new();
         let mut counter = 0usize;
         // Application menu.
-        let app_menu = Submenu::new("DesignCraft", true);
+        let app_menu = Submenu::new("Tibetan Design Layout", true);
         // Our own About splash (with the community links) instead of the stock panel.
-        let about = MenuItem::with_id("dc-about", "About DesignCraft", true, None);
-        let discord = MenuItem::with_id("dc-discord", "Join the ArtCraft Discord…", true, None);
+        let about = MenuItem::with_id("dc-about", "About Tibetan Design Layout", true, None);
+        let discord = MenuItem::with_id("dc-discord", "More Tibetan apps…", true, None);
         // Not the predefined Quit: it terminates the app at once, past the unsaved-changes prompt.
-        let quit = MenuItem::with_id("dc-quit", designcraft_ui_egui::i18n::tr(&app.ui.language, "Quit DesignCraft"), true, accel("Cmd+Q"));
+        let quit = MenuItem::with_id("dc-quit", designcraft_ui_egui::i18n::tr(&app.ui.language, "Quit Tibetan Design Layout"), true, accel("Cmd+Q"));
         let _ = app_menu.append_items(&[
             &about,
             &discord,

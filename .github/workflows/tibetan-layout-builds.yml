@@ -1,0 +1,93 @@
+name: Tibetan Design Layout builds
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 180
+    env:
+      CARGO_BUILD_JOBS: '2'
+      CARGO_PROFILE_RELEASE_LTO: 'false'
+      CARGO_PROFILE_RELEASE_CODEGEN_UNITS: '16'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Prepare Tibetan font
+        shell: pwsh
+        run: |
+          ./scripts/prepare-tibetan-font.ps1
+          "CRAFT_FONTS_DIR=$env:CRAFT_FONTS_DIR" >> $env:GITHUB_ENV
+          "CRAFT_FONTS_REQUIRED=1" >> $env:GITHUB_ENV
+      - name: Validate customized source and templates
+        shell: pwsh
+        run: |
+          cargo test -p designcraft-engine --lib templates:: --locked
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo test -p designcraft-ui-egui --lib i18n:: --locked
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo test -p designcraft-ui-egui --lib tibetan_tests --locked
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Check customized Rust code
+        shell: pwsh
+        run: |
+          cargo clippy -p designcraft-engine -p designcraft-ui-egui -p designcraft --all-targets --locked -- -D warnings
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo xtask assets
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo xtask layers
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Install WiX
+        run: dotnet tool install --global wix --version 5.0.2
+      - name: Build Windows installer
+        shell: pwsh
+        run: ./packaging/windows/package.ps1 -Arch x64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Tibetan-Design-Layout-Windows-x64
+          if-no-files-found: error
+          path: |
+            dist/release/tibetan-design-layout-*-windows-x64.msi
+            dist/release/tibetan-design-layout-*-windows-x64-portable.zip
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: aarch64
+          - runner: macos-15-intel
+            arch: x86_64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 180
+    env:
+      CARGO_BUILD_JOBS: '2'
+      CARGO_PROFILE_RELEASE_LTO: 'false'
+      CARGO_PROFILE_RELEASE_CODEGEN_UNITS: '16'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Prepare Tibetan font
+        run: |
+          source scripts/prepare-tibetan-font.sh
+          echo "CRAFT_FONTS_DIR=$CRAFT_FONTS_DIR" >> "$GITHUB_ENV"
+          echo "CRAFT_FONTS_REQUIRED=1" >> "$GITHUB_ENV"
+      - name: Validate customized source and templates
+        run: |
+          cargo test -p designcraft-engine --lib templates:: --locked
+          cargo test -p designcraft-ui-egui --lib i18n:: --locked
+          cargo test -p designcraft-ui-egui --lib tibetan_tests --locked
+      - name: Build and verify Mac DMG
+        run: bash packaging/macos/package.sh --arch '${{ matrix.arch }}'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Tibetan-Design-Layout-macOS-${{ matrix.arch }}
+          if-no-files-found: error
+          path: |
+            dist/release/tibetan-design-layout-*-macos-${{ matrix.arch }}.dmg
+            dist/release/tibetan-design-layout-cli-*-macos-${{ matrix.arch }}.zip
+

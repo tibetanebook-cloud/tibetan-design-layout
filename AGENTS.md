@@ -1,3 +1,6 @@
+# Tibetan Design Layout customization
+The user requested Tibetan Design Layout with their StudyTibetan logo and Tibetan/English interface. This overrides upstream display branding. Keep original copyright, licenses, contributor credits, machine crate names and file-format identifiers. The Tibetan catalog reuses the user's dictionary-guided Tibetan Design terminology; uncovered labels remain English. Do not claim complete translation or verified installers without successful checks.
+
 # DesignCraft — instructions for agents
 
 DesignCraft is a clean-room, open-source, Rust-native page-layout application targeting Adobe InDesign parity — and superiority (speed, openness, agent control). It runs natively on macOS, Windows and Linux, and on the web via WASM. Siblings with the same conventions: `../vectorcraft` (Illustrator-class), `../photocraft` (Photoshop), `../pdfcraft` (Acrobat), `../filmcraft` (Premiere), `../lightcraft` (Lightroom).

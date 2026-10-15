@@ -13,8 +13,8 @@ fn config_dir_with(os: &str, env: impl Fn(&str) -> Option<OsString>) -> Option<P
         return (!root.is_empty()).then(|| PathBuf::from(root));
     }
     match os {
-        "macos" => env("HOME").map(|p| PathBuf::from(p).join("Library/Application Support/DesignCraft")),
-        "windows" => env("APPDATA").map(|p| PathBuf::from(p).join("DesignCraft")),
+        "macos" => env("HOME").map(|p| PathBuf::from(p).join("Library/Application Support/Tibetan Design Layout")),
+        "windows" => env("APPDATA").map(|p| PathBuf::from(p).join("Tibetan Design Layout")),
         _ => {
             env("XDG_CONFIG_HOME").map(PathBuf::from).or_else(|| env("HOME").map(|p| PathBuf::from(p).join(".config"))).map(|p| p.join("designcraft"))
         }
@@ -25,7 +25,7 @@ pub fn recovery_dir() -> Option<PathBuf> {
     recovery_dir_with(std::env::var_os("DESIGNCRAFT_CONFIG_DIR"), designcraft_engine::recovery::default_dir).and_then(own_run)
 }
 
-/// This run's folder in the recovery folder `root`. A second running DesignCraft has its own, so
+/// This run's folder in the recovery folder `root`. A second running Tibetan Design Layout has its own, so
 /// neither writes over the other's documents nor takes them for a crash's.
 fn own_run(root: PathBuf) -> Option<PathBuf> {
     match designcraft_engine::recovery::run_dir(&root) {
@@ -74,8 +74,8 @@ mod tests {
 
     #[test]
     fn unset_override_preserves_existing_platform_paths() {
-        assert_eq!(config_dir_with("macos", environment), Some("/user/Library/Application Support/DesignCraft".into()));
-        assert_eq!(config_dir_with("windows", environment), Some("/roaming/DesignCraft".into()));
+        assert_eq!(config_dir_with("macos", environment), Some("/user/Library/Application Support/Tibetan Design Layout".into()));
+        assert_eq!(config_dir_with("windows", environment), Some("/roaming/Tibetan Design Layout".into()));
         assert_eq!(config_dir_with("linux", environment), Some("/xdg-config/designcraft".into()));
         assert_eq!(config_dir_with("linux", |key| if key == "HOME" { environment(key) } else { None }), Some("/user/.config/designcraft".into()));
         assert_eq!(recovery_dir_with(None, || Some("/existing/recovery".into())), Some("/existing/recovery".into()));

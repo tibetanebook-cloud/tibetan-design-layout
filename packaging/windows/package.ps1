@@ -25,6 +25,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $Root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+. (Join-Path $Root 'scripts/prepare-tibetan-font.ps1')
 
 function Invoke-Native([string] $What, [scriptblock] $Block) {
   Write-Output "==> $What"
@@ -83,15 +84,24 @@ foreach ($check in @(@('designcraft.exe', 2), @('designcraft-cli.exe', 3))) {
   if ($h.Subsystem -ne $check[1]) { throw "$($check[0]) has PE subsystem $($h.Subsystem), expected $($check[1])" }
   Write-Output "ok $($check[0]): $Arch, PE subsystem $($h.Subsystem)"
 }
+function Assert-PackagePath([string] $Path) {
+  $basePath = [IO.Path]::GetFullPath($TargetDir).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+  $resolvedPath = [IO.Path]::GetFullPath($Path)
+  if (-not $resolvedPath.StartsWith($basePath, [StringComparison]::OrdinalIgnoreCase)) { throw "Unsafe package work path: $resolvedPath" }
+}
 $Stage = Join-Path $TargetDir "windows-package\$Arch"
+Assert-PackagePath $Stage
 Remove-Item -Recurse -Force $Stage -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path $Stage | Out-Null
-Copy-Item (Join-Path $Bin 'designcraft.exe'), (Join-Path $Bin 'designcraft-cli.exe') $Stage
+Copy-Item (Join-Path $Bin 'designcraft.exe') (Join-Path $Stage 'Tibetan Design Layout.exe')
+Copy-Item (Join-Path $Bin 'designcraft-cli.exe') $Stage
+foreach ($notice in 'LICENSE-MIT', 'LICENSE-APACHE', 'NOTICE', 'ASSETS.md') { Copy-Item -LiteralPath (Join-Path $Root $notice) -Destination $Stage }
+Copy-Item -LiteralPath (Join-Path $Root 'assets/app-icon/OFL-Tibetan.txt') -Destination $Stage
 
-& (Join-Path $PSScriptRoot 'sign.ps1') (Join-Path $Stage 'designcraft.exe') (Join-Path $Stage 'designcraft-cli.exe')
+& (Join-Path $PSScriptRoot 'sign.ps1') (Join-Path $Stage 'Tibetan Design Layout.exe') (Join-Path $Stage 'designcraft-cli.exe')
 
 # ---- MSI ---------------------------------------------------------------------------------------
-$Msi = Join-Path $Dist "designcraft-$Version-windows-$Arch.msi"
+$Msi = Join-Path $Dist "tibetan-design-layout-$Version-windows-$Arch.msi"
 Invoke-Native 'wix build' {
   wix build (Join-Path $PSScriptRoot 'designcraft.wxs') -arch $Arch `
     -d "Version=$MsiVersion" -d "BinDir=$Stage" -d "IconPath=$(Join-Path $Root 'assets\app-icon\designcraft.ico')" `
@@ -102,11 +112,12 @@ Remove-Item -Force -ErrorAction SilentlyContinue ([IO.Path]::ChangeExtension($Ms
 & (Join-Path $PSScriptRoot 'sign.ps1') $Msi
 
 # ---- portable zip ------------------------------------------------------------------------------
-$Portable = Join-Path $TargetDir "windows-package\designcraft-$Version-windows-$Arch-portable"
+$Portable = Join-Path $TargetDir "windows-package\tibetan-design-layout-$Version-windows-$Arch-portable"
+Assert-PackagePath $Portable
 Remove-Item -Recurse -Force $Portable -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path $Portable | Out-Null
 Copy-Item (Join-Path $Stage '*.exe') $Portable
-foreach ($f in 'README.md', 'LICENSE', 'LICENSE-MIT', 'LICENSE-APACHE') {
+foreach ($f in 'README.md', 'LICENSE', 'LICENSE-MIT', 'LICENSE-APACHE', 'NOTICE', 'ASSETS.md') {
   $p = Join-Path $Root $f
   if (Test-Path $p) { Copy-Item $p $Portable }
 }
@@ -116,7 +127,7 @@ if ($env:CRAFT_FONTS_DIR) {
     Copy-Item $ofl.FullName (Join-Path $Portable "OFL-$($ofl.Directory.Name).txt")
   }
 }
-$Zip = Join-Path $Dist "designcraft-$Version-windows-$Arch-portable.zip"
+$Zip = Join-Path $Dist "tibetan-design-layout-$Version-windows-$Arch-portable.zip"
 Remove-Item -Force $Zip -ErrorAction SilentlyContinue
 Compress-Archive -Path $Portable -DestinationPath $Zip
 

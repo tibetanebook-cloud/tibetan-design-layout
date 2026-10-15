@@ -16,6 +16,7 @@ mod endnotes;
 mod export;
 mod file;
 pub(crate) mod find;
+mod templates;
 pub use find::same_find_domain;
 pub(crate) mod flex;
 mod fonts;
@@ -154,6 +155,7 @@ pub fn command_specs() -> &'static [CommandSpec] {
     SPECS.get_or_init(|| {
         let mut v = Vec::new();
         v.extend(file::specs());
+        v.extend(templates::specs());
         v.extend(interchange::specs());
         v.extend(export::specs());
         v.extend(edit::specs());
