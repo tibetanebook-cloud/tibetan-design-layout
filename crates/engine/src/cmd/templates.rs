@@ -129,6 +129,9 @@ fn text(s: &mut Session, rect: [f64; 4], content: &str, size: f64, tibetan: bool
 }
 
 fn create(s: &mut Session, id: &str) -> Result<Value> {
+    if id.starts_with("pecha") {
+        return create_pecha(s, id);
+    }
     let t = TEMPLATES.iter().find(|t| t.id == id).ok_or_else(|| bad("template", "unknown template"))?;
     let mm = 72.0 / 25.4;
     let (w, h) = (t.width_mm * mm, t.height_mm * mm);
@@ -177,6 +180,135 @@ fn create(s: &mut Session, id: &str) -> Result<Value> {
     Ok(created)
 }
 
+/// Pecha leaves retain generous outside margins, double rules, and independent
+/// title / folio panels. All ornament and text remain native editable objects.
+fn pecha_rule(s: &mut Session, spread: usize, a: [f64; 2], b: [f64; 2], weight: f64) -> Result<()> {
+    s.execute("line.create", &json!({"spread": spread, "a": a, "b": b}))?;
+    s.execute("object.stroke", &json!({"swatch": "[Black]", "weight": weight}))?;
+    Ok(())
+}
+fn pecha_border(s: &mut Session, spread: usize, r: [f64; 4], weight: f64) -> Result<()> {
+    s.execute("frame.create", &json!({"spread": spread, "rect": r, "content": "unassigned"}))?;
+    s.execute("object.fill", &json!({"swatch": "[None]"}))?;
+    s.execute("object.stroke", &json!({"swatch": "[Black]", "weight": weight}))?;
+    Ok(())
+}
+fn pecha_text(s: &mut Session, spread: usize, r: [f64; 4], content: &str, size: f64, leading: f64, tibetan: bool, center: bool) -> Result<()> {
+    s.execute("frame.create", &json!({"spread": spread, "rect": r, "content": "text", "text": content, "caret": false}))?;
+    s.execute("type.char", &json!({"attrs": {"fontFamily": if tibetan { "Noto Serif Tibetan" } else { "Source Serif 4" }, "size": size, "leading": {"kind": "points", "value": leading}}}))?;
+    s.execute("type.para", &json!({"attrs": {"hyphenate": false, "align": if center { "center" } else { "left" }}}))?;
+    Ok(())
+}
+fn create_pecha(s: &mut Session, id: &str) -> Result<Value> {
+    let t = TEMPLATES.iter().find(|t| t.id == id).ok_or_else(|| bad("template", "unknown template"))?;
+    let mm = 72.0 / 25.4;
+    let (w, h) = (t.width_mm * mm, t.height_mm * mm);
+    let title_only = id == "pechaTitle";
+    let pages = if title_only { 1 } else { 3 };
+    let created =
+        s.execute("file.new", &json!({"title": t.name, "width": w, "height": h, "pages": pages, "facingPages": false, "margins": 10.0 * mm}))?;
+    for spread in 0..pages {
+        let (left, top, right, bottom) = (10.0 * mm, 10.0 * mm, w - 10.0 * mm, h - 10.0 * mm);
+        let gap = 1.2 * mm;
+        let panel = if id == "pechaCompact" { 13.0 * mm } else { 18.0 * mm };
+        let inset = 3.0 * mm;
+        let (body_left, body_right) = (left + panel + inset, right - panel - inset);
+        if t.border {
+            pecha_border(s, spread, [6.0 * mm, 6.0 * mm, w - 6.0 * mm, h - 6.0 * mm], 0.35)?;
+            pecha_border(s, spread, [left, top, right, bottom], 0.65)?;
+            pecha_border(s, spread, [left + gap, top + gap, right - gap, bottom - gap], 0.35)?;
+            for x in [left + panel, right - panel] {
+                pecha_rule(s, spread, [x, top], [x, bottom], 0.65)?;
+                pecha_rule(s, spread, [x + gap, top + gap], [x + gap, bottom - gap], 0.35)?;
+            }
+        }
+        let label_size = if id == "pechaCompact" { 12.0 } else { 15.0 };
+        let side_center = left + panel * 0.5;
+        let side_width = bottom - top - inset * 2.0;
+        pecha_text(
+            s,
+            spread,
+            [side_center - side_width * 0.5, h * 0.5 - label_size * 1.5, side_center + side_width * 0.5, h * 0.5 + label_size * 1.5],
+            "དཔེ་ཆའི་མཚན།",
+            label_size,
+            label_size * 1.65,
+            true,
+            true,
+        )?;
+        s.execute("transform.rotate", &json!({"angle": 90.0}))?;
+        // The two body leaves represent the front/back of folio one.
+        let folio = if spread == 0 {
+            "མཚན།\nབྱང་།"
+        } else if spread == 1 {
+            "༡\nཀ"
+        } else {
+            "༡\nཁ"
+        };
+        pecha_text(
+            s,
+            spread,
+            [right - panel + inset * 1.5, h * 0.38, right - inset, bottom - inset],
+            folio,
+            label_size,
+            label_size * 1.65,
+            true,
+            true,
+        )?;
+        if spread == 0 {
+            pecha_text(s, spread, [body_left, h * 0.22, body_right, h * 0.49], "༄༅། །དཔེ་ཆའི་མཚན་བྱང་།", t.size, t.size * 1.65, true, true)?;
+            pecha_text(
+                s,
+                spread,
+                [body_left, h * 0.56, body_right, bottom - inset],
+                "རྩོམ་པ་པོའི་མཚན་འདིར་བྲིས།",
+                label_size,
+                label_size * 1.65,
+                true,
+                true,
+            )?;
+        } else {
+            let opening = if spread == 1 {
+                "༄༅། །བོད་ཡིག་འདིར་བྲིས། །"
+            } else {
+                "བོད་ཡིག་འདིར་མུ་མཐུད་དུ་བྲིས། །"
+            };
+            let samples = [opening, "འདི་ནི་དཔེ་མཚོན་གྱི་ཡི་གེ་ཡིན། །", "མ་ཡིག་དང་བསྡུར་ནས་ཞིབ་ཏུ་བལྟ། །", "དཔར་མ་བྱས་གོང་ཡི་གེ་ཞིབ་ཏུ་བལྟ། །"];
+            let lines = if t.bilingual {
+                2
+            } else if id == "pechaCompact" {
+                3
+            } else {
+                4
+            };
+            let body = samples.iter().take(lines).copied().collect::<Vec<_>>().join("\n");
+            let y0 = top + inset * 1.5;
+            let y1 = bottom - inset;
+            if t.bilingual {
+                let middle = (y0 + y1) * 0.5;
+                pecha_text(s, spread, [body_left, y0, body_right, middle - inset], &body, t.size, t.size * 1.65, true, false)?;
+                pecha_rule(s, spread, [body_left, middle], [body_right, middle], 0.35)?;
+                if id == "pechaCommentary" {
+                    pecha_text(s, spread, [body_left, middle + inset, body_right, y1], "འགྲེལ་བཤད་འདིར་བྲིས།", 20.0, 33.0, true, false)?;
+                } else {
+                    pecha_text(
+                        s,
+                        spread,
+                        [body_left, middle + inset, body_right, y1],
+                        "Replace this text with your English translation.",
+                        12.0,
+                        19.0,
+                        false,
+                        false,
+                    )?;
+                }
+            } else {
+                pecha_text(s, spread, [body_left, y0, body_right, y1], &body, t.size, t.size * 1.65, true, false)?;
+            }
+        }
+    }
+    Ok(created)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -187,11 +319,25 @@ mod tests {
             s.execute(&format!("template.{}", t.id), &json!({})).unwrap();
             let doc = &s.doc().unwrap().doc;
             assert_eq!(doc.title, t.name);
+            assert_eq!(doc.page_count(), if t.id.starts_with("pecha") && t.id != "pechaTitle" { 3 } else { 1 });
             assert!(!doc.stories.is_empty(), "{} has editable text", t.id);
             let bytes = crate::cmd::file::to_bytes(doc);
             let restored = crate::cmd::file::from_bytes(&bytes).unwrap();
             assert_eq!(restored.title, t.name);
             assert_eq!(restored.stories.len(), doc.stories.len());
+        }
+    }
+    #[test]
+    fn pecha_sample_text_fits_with_bundled_tibetan_font() {
+        if !designcraft_fonts::CRAFT_FONTS.iter().any(|f| f.family == "Noto Serif Tibetan") {
+            return;
+        }
+        for t in TEMPLATES.iter().filter(|t| t.id.starts_with("pecha")) {
+            let mut s = Session::new();
+            create_pecha(&mut s, t.id).unwrap();
+            let report = s.execute("preflight.run", &json!({})).unwrap();
+            let issues = report["issues"].as_array().unwrap();
+            assert!(!issues.iter().any(|issue| issue["kind"] == "overset"), "{}: {issues:?}", t.id);
         }
     }
     #[test]

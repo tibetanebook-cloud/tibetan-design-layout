@@ -2,7 +2,7 @@
 
 Created by ནང་ཆེན་བཀྲ་ཤིས།.
 
-Choose File → Template Library. Each template opens a new native document with editable text; borders and image placeholders are editable frames. Replace the placeholder text, add pages and thread frames as needed. The sample folio is editable text, not automatic numbering. The initial templates are single leaves/pages; duplex imposition and automatic Tibetan folio numbering are not implemented by this library.
+Choose File → Template Library. Each template opens a new native document with editable text; borders and image placeholders are editable frames. Replace the placeholder text, add pages and thread frames as needed. The sample folio is editable text, not automatic numbering. Pecha presets include title and front/back leaves; book presets are single pages; duplex imposition and automatic Tibetan folio numbering are not implemented by this library.
 
 | Template | Trim size (mm) | Text size (pt) |
 |---|---:|---:|
@@ -32,3 +32,12 @@ Pecha sizes here are practical starting choices, not a claim of a universal trad
 - Reviewed guimaluf/tibetan-pecha and CTAN Pecha for available formats. No code, liturgical texts, artwork, fonts or templates from those projects are bundled. This library is original code under the inherited project code licenses.
 
 This is a curated collection; there is no exhaustive library of all Pecha or book templates. Tibetan proofreading and print proofing are still required.
+
+
+## Revised Pecha layouts
+
+Pecha presets now create a title leaf plus front/back body leaves (the title-only preset remains one page). Double editable black borders enclose separate rotated short-title, body, and Tibetan folio panels, inside a fine outside rule. Traditional presets use 27–30 pt Tibetan text with 1.65× leading; the compact preset uses 22 pt. Bilingual and commentary leaves have a dividing rule and separate editable text frames. Change the short title, author, folio labels, and body text before printing.
+
+These are original layouts based on the user-provided PechaMaker screenshot and the [PechaMaker layout documentation](https://www.pechamaker.com/FAQ.html). No PechaMaker code, fonts, or copyrighted sample text is bundled. Leaves use manual editable folio labels; adding more leaves does not automatically update numbering or thread text between them. The templates are not printer imposition sheets.
+
+The top menu now includes **Language** immediately before Help; English and བོད་ཡིག · Tibetan are available there as well as through Edit → Interface Language.

@@ -1,5 +1,7 @@
 # DesignCraft roadmap
 
+- Tibetan Layout revision: Pecha title/front/back sets with double rules, side titles and folio panels; a top-level Language menu beside Help. Validation pending.
+
 **Stage: pre-alpha** · next: alpha, ~5–7 h away; beta ~28 points and ~420–750 h beyond that (the core-workflow gate, not the percentage: ready for real work is already ~47%)
 - FID1: PDF export normalizes mixed emitted gradient color spaces to RGB with an explicit warning; homogeneous device-space gradients retain their components. Linear/radial, midpoint, archival and print policies have synthetic regression coverage.
 

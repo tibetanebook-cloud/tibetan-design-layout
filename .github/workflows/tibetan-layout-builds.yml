@@ -32,6 +32,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cargo test -p designcraft-ui-egui --lib tibetan_tests --locked
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo test -p designcraft-ui-egui --lib language_menu_is_next_to_help_and_switches_tibetan --locked
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Check customized Rust code
         shell: pwsh
         run: |
@@ -46,6 +48,14 @@ jobs:
       - name: Build Windows installer
         shell: pwsh
         run: ./packaging/windows/package.ps1 -Arch x64
+      - name: Render Pecha previews
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist/previews | Out-Null
+          foreach ($preset in @('pechaClassic', 'pechaCompact', 'pechaBilingual')) {
+            & './target/windows-package/x64/designcraft-cli.exe' run --cmd "template.${preset}={}" --all-pages "dist/previews/$preset" --export "dist/previews/$preset.designcraft" --export "dist/previews/$preset.pdf"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
       - uses: actions/upload-artifact@v4
         with:
           name: Tibetan-Design-Layout-Windows-x64
@@ -53,6 +63,7 @@ jobs:
           path: |
             dist/release/tibetan-design-layout-*-windows-x64.msi
             dist/release/tibetan-design-layout-*-windows-x64-portable.zip
+            dist/previews/**
   macos:
     strategy:
       fail-fast: false
@@ -81,6 +92,7 @@ jobs:
           cargo test -p designcraft-engine --lib templates:: --locked
           cargo test -p designcraft-ui-egui --lib i18n:: --locked
           cargo test -p designcraft-ui-egui --lib tibetan_tests --locked
+          cargo test -p designcraft-ui-egui --lib language_menu_is_next_to_help_and_switches_tibetan --locked
       - name: Build and verify Mac DMG
         run: bash packaging/macos/package.sh --arch '${{ matrix.arch }}'
       - uses: actions/upload-artifact@v4

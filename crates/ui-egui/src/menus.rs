@@ -40,7 +40,7 @@ pub const UI_COMMANDS: &[(&str, &str, Option<&str>, &str)] = &[
         "app.language",
         "Interface Language",
         None,
-        "{lang: \"\"|de|fr|es|ja|zh|ar|pt-br|it|uk|ka} — menus and panel names (the macOS menu bar follows on the next launch)",
+        "{lang: \"\"|de|fr|es|ja|zh|ar|pt-br|it|uk|ka|bo} — menus and panel names (the macOS menu bar follows on the next launch)",
     ),
     (
         "app.flattener",
@@ -828,6 +828,23 @@ pub const MENUS: &[(&str, &[&str])] = &[
             "ui:window.toolsDoubleColumn",
             "-",
             "ui:window.brightness",
+        ],
+    ),
+    (
+        "Language",
+        &[
+            "ui:app.language|English|{\"lang\": \"\"}",
+            "ui:app.language|བོད་ཡིག · Tibetan|{\"lang\": \"bo\"}",
+            "ui:app.language|Deutsch|{\"lang\": \"de\"}",
+            "ui:app.language|Français|{\"lang\": \"fr\"}",
+            "ui:app.language|Español|{\"lang\": \"es\"}",
+            "ui:app.language|日本語|{\"lang\": \"ja\"}",
+            "ui:app.language|简体中文|{\"lang\": \"zh\"}",
+            "ui:app.language|العربية|{\"lang\": \"ar\"}",
+            "ui:app.language|Português (Brasil)|{\"lang\": \"pt-br\"}",
+            "ui:app.language|Italiano|{\"lang\": \"it\"}",
+            "ui:app.language|Українська|{\"lang\": \"uk\"}",
+            "ui:app.language|ქართული|{\"lang\": \"ka\"}",
         ],
     ),
     (
@@ -3060,6 +3077,19 @@ mod tests {
                 .extend(labels.into_iter().filter(|l| l.chars().any(char::is_alphabetic) && !size(l) && crate::i18n::tr("ka", l) == l.as_str()));
         }
         assert!(untranslated.is_empty(), "untranslated Georgian menu labels: {untranslated:?}");
+    }
+
+    #[test]
+    fn language_menu_is_next_to_help_and_switches_tibetan() {
+        let menus = menu_tree();
+        let index = menus.iter().position(|(title, _)| *title == "Language").unwrap();
+        assert_eq!(menus.get(index + 1).map(|(title, _)| *title), Some("Help"));
+        assert!(menus[index].1.iter().any(|entry| matches!(entry,
+            Item::Cmd { id, params, .. } if id == "app.language" && params["lang"] == "bo")));
+        let mut app = crate::DesignApp::new(designcraft_engine::Session::new(), crate::Services::default());
+        run_ui(&mut app, "app.language", &json!({"lang": "bo"})).unwrap().unwrap();
+        assert_eq!(app.ui.language, "bo");
+        assert_eq!(checked(&app, "app.language", &json!({"lang": "bo"})), Some(true));
     }
 
     #[test]
