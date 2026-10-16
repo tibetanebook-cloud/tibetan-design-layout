@@ -247,7 +247,7 @@ fn create_pecha(s: &mut Session, id: &str) -> Result<Value> {
         pecha_text(
             s,
             spread,
-            [right - panel + inset * 1.5, h * 0.38, right - inset, bottom - inset],
+            [right - panel + inset * 0.5, h * 0.38, right - inset * 0.5, bottom - inset],
             folio,
             label_size,
             label_size * 1.65,
@@ -332,13 +332,17 @@ mod tests {
         if !designcraft_fonts::CRAFT_FONTS.iter().any(|f| f.family == "Noto Serif Tibetan") {
             return;
         }
+        let mut overflows = Vec::new();
         for t in TEMPLATES.iter().filter(|t| t.id.starts_with("pecha")) {
             let mut s = Session::new();
             create_pecha(&mut s, t.id).unwrap();
             let report = s.execute("preflight.run", &json!({})).unwrap();
             let issues = report["issues"].as_array().unwrap();
-            assert!(!issues.iter().any(|issue| issue["kind"] == "overset"), "{}: {issues:?}", t.id);
+            if issues.iter().any(|issue| issue["kind"] == "overset") {
+                overflows.push(format!("{}: {issues:?}", t.id));
+            }
         }
+        assert!(overflows.is_empty(), "Pecha overflow: {}", overflows.join("; "));
     }
     #[test]
     fn unknown_template_does_not_create_document() {

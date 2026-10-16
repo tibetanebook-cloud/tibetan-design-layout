@@ -11,3 +11,5 @@ Created by ནང་ཆེན་བཀྲ་ཤིས།. Source: storytold/desi
 - Local native builds and GitHub installer verification must pass before claiming ready-to-install packages. Mac notarization and Windows signing need the owner's signing credentials.
 
 - Pecha revision: Language top menu placed immediately before Help; Edit language submenu retained. Local validation and replacement installers are pending; the existing 0.8.0 downloads do not include this revision.
+
+- 0.8.1 build repair: compact title folio panel text area widened from 5.5 mm to 10 mm while preserving border clearance. Overflow regression checks every Pecha preset before reporting failures. Remote validation pending.
