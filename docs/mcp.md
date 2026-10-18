@@ -1,7 +1,7 @@
 # MCP server
 
 `designcraft-cli mcp` is a [Model Context Protocol](https://modelcontextprotocol.io) server that lets Claude and
-other agents drive DesignCraft: create documents, lay out frames and text, apply styles, place images, and look at
+other agents drive Tibetan Design Layout: create documents, lay out frames and text, apply styles, place images, and look at
 the result as PNG images. It speaks newline-delimited JSON-RPC 2.0 on stdin/stdout (protocol `2025-06-18`, also
 `2025-03-26` and `2024-11-05`); logs go to stderr. The implementation is the `designcraft-mcp` crate.
 
@@ -30,13 +30,13 @@ The release packages ship `designcraft-cli` alongside the desktop app, so no bui
 
 | Install | CLI |
 |---|---|
-| Windows (MSI) | `C:\Program Files\DesignCraft\designcraft-cli.exe` by default (wherever you installed it otherwise), not on `PATH` |
+| Windows (MSI) | `C:\Program Files\Tibetan Design Layout\designcraft-cli.exe` by default (wherever you installed it otherwise), not on `PATH` |
 | Linux (deb, rpm) | `/usr/bin/designcraft-cli` |
 | macOS | the separate `designcraft-cli-<version>-macos-<arch>.zip` release asset (the `.app` holds only the desktop app) |
 
 ```sh
 # Windows, default install folder
-claude mcp add designcraft -- "C:\Program Files\DesignCraft\designcraft-cli.exe" mcp
+claude mcp add designcraft -- "C:\Program Files\Tibetan Design Layout\designcraft-cli.exe" mcp
 # Linux, or macOS with the CLI unzipped onto PATH
 claude mcp add designcraft -- designcraft-cli mcp
 ```
@@ -59,7 +59,7 @@ config works across the suite) keep the agent to the folders you give it:
   `file.openIdml`, `place_image` and `file.place` / `place.load` / `media.options` with a `path`,
   `links.relink`, `links.relinkFolder`, `color.loadProfile`, `swatch.load`, `library.open`,
   `book.open`, `data.source.select`, `data.merge` and `file.importXml` / `xml.loadDtd` with a `path`,
-  and `file.recovery.list` / `file.recovery.open` with a `dir`. A DesignCraft document names more
+  and `file.recovery.list` / `file.recovery.open` with a `dir`. A Tibetan Design Layout document names more
   files than the agent does: linked images, data sources, book chapters, the `Document Fonts` folder
   beside a document, an IDML package's linked images and the files an image cell of a merge names.
   Those are read through the same checks, so a path in a document that leads outside the read root
@@ -89,7 +89,7 @@ config works across the suite) keep the agent to the folders you give it:
   given once (`--flag <dir>` or `--flag=<dir>`).
 
 The flags confine the in-process server, so `--connect` together with them is an error: the server
-would otherwise talk to an app that isn't confined. DesignCraft's desktop app has no equivalent flags
+would otherwise talk to an app that isn't confined. Tibetan Design Layout's desktop app has no equivalent flags
 yet, so a running app (`designcraft --control`) is not confined. `--sample` is the operator's own
 choice and is opened before the roots apply.
 
@@ -210,4 +210,4 @@ key        {"key": "Escape"}
 
 ## Community links
 
-`app.links` returns the ArtCraft Discord (https://discord.gg/artcraft), the website (https://getartcraft.com), DesignCraft's app page (https://getartcraft.com/apps/designcraft), its GitHub repository (https://github.com/storytold/designcraft) and the issue tracker. In the running app, the UI commands `help.discord`, `help.appPage`, `help.github`, `help.issues`, `help.website`, `help.app {app}` open them in the browser and `help.about {tab?}` shows the About window (tabs `about`, `contributors`, `models`). The server's `serverInfo.websiteUrl` is the app page.
+`app.links` returns the ArtCraft Discord (https://discord.gg/artcraft), the website (https://getartcraft.com), Tibetan Design Layout's app page (https://getartcraft.com/apps/designcraft), its GitHub repository (https://github.com/storytold/designcraft) and the issue tracker. In the running app, the UI commands `help.discord`, `help.appPage`, `help.github`, `help.issues`, `help.website`, `help.app {app}` open them in the browser and `help.about {tab?}` shows the About window (tabs `about`, `contributors`, `models`). The server's `serverInfo.websiteUrl` is the app page.

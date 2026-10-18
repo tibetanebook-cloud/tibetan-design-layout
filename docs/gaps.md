@@ -1,4 +1,4 @@
-# Where DesignCraft falls short of InDesign
+# Where Tibetan Design Layout falls short of InDesign
 
 > **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-13 · **Change:** minor (bounded control click/drag input) · **Target:** Adobe InDesign 2026 (21.6)
 
@@ -43,7 +43,7 @@ Kind: **F** feature · **U** UI/UX · **T** typography · **FF** file format · 
 - **Missing:** INDD (and INDT, INDB, INDL) reading. Everything InDesign users receive is INDD.
 - **Evidence:** #21. Two clean-room converters are proposed: PR #98 and `indd-utils` (#114),
   which reports 96.9% of InDesign's IDML values reproduced on ~650 INDD/IDML pairs, 0 failures on
-  ~4,300 files, and output that DesignCraft's IDML importer already reads.
+  ~4,300 files, and output that Tibetan Design Layout's IDML importer already reads.
 - **Impact:** without it, every job starts with "ask the client for an IDML".
 - **Estimate:** 20–60 h to integrate indd-utils (INDD → IDML → existing importer), warnings UI,
   corpus test; **owner decision** on provenance and where the crate lives.
@@ -64,7 +64,7 @@ Kind: **F** feature · **U** UI/UX · **T** typography · **FF** file format · 
 
 ### 4. Composition isn't compared with InDesign (T)
 - **Missing:** an oracle harness: the same synthetic stories set by InDesign 2026 (observed
-  black-box, results kept under `plan/`) and by DesignCraft, comparing line breaks, overset and
+  black-box, results kept under `plan/`) and by Tibetan Design Layout, comparing line breaks, overset and
   frame fit. Known differences: optical kerning falls back to metrics, so imported text sets
   wider (#181); a frame goes overset when descenders don't fit, InDesign needs only the baseline
   (#180); setting the text language was missing (#130; Language is now in Properties, #145, the issue is still open); "hyphenation doesn't work"

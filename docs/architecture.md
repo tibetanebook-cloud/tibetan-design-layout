@@ -1,8 +1,8 @@
-# DesignCraft architecture
+# Tibetan Design Layout architecture
 
 > **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-12 · **Change:** minor (shared PDF writing) · **Target:** Adobe InDesign 2026
 
-How DesignCraft is built today. The design notes behind it are in `plan/architecture.md`
+How Tibetan Design Layout is built today. The design notes behind it are in `plan/architecture.md`
 (local, gitignored); this file describes what the code on `main` does. Agents: AGENTS.md has the
 rules (never crash, everything is a command, layering, clean-room).
 

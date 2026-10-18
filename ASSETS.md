@@ -73,3 +73,14 @@ Generated-in-code art is original and has no file to list: the UI icon set (`cra
 `assets/app-icon/designcraft-1024.png`, `assets/app-icon/designcraft.ico` and the existing hicolor PNG paths: replaced with the user-supplied endless-knot Layout artwork on 2026-10-17. The runtime Mac PNG and ICNS also use this artwork. No separate public asset license is asserted. The Mac ICNS is generated from the supplied PNG at packaging time.
 
 `assets/app-icon/OFL-Tibetan.txt`: Noto Serif Tibetan font license, The Noto Project Authors, https://github.com/google/fonts/tree/main/ofl/notoseriftibetan, SIL OFL 1.1. Font binaries are verified external build inputs, never committed.
+
+## Tibetan Design Layout screenshots
+
+| Asset | Author | Source | Licence | Notes |
+|---|---|---|---|---|
+| `assets/screenshots/tibetan-layout/pecha-workspace-promo.png` | User supplied | Supplied by project owner, 2026-10-18 | No separate public asset licence asserted | Authorized project promotional image |
+| `assets/screenshots/tibetan-layout/template-library-promo.png` | User supplied | Supplied by project owner, 2026-10-18 | No separate public asset licence asserted | Authorized project promotional image |
+| `assets/screenshots/tibetan-layout/home.png` | User supplied | Supplied by project owner, 2026-10-18 | No separate public asset licence asserted | Authorized project promotional image |
+| `assets/screenshots/tibetan-layout/classic-pecha.png` | User supplied | Supplied by project owner, 2026-10-18 | No separate public asset licence asserted | Authorized project promotional image |
+| `assets/screenshots/tibetan-layout/large-pecha.png` | User supplied | Supplied by project owner, 2026-10-18 | No separate public asset licence asserted | Authorized project promotional image |
+| `assets/screenshots/tibetan-layout/template-library.png` | User supplied | Supplied by project owner, 2026-10-18 | No separate public asset licence asserted | Authorized project promotional image |
