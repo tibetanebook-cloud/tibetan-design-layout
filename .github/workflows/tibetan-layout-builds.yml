@@ -14,6 +14,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Resolve update notification dependencies
+        run: cargo update --workspace
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
@@ -27,6 +29,8 @@ jobs:
         shell: pwsh
         run: |
           cargo test -p designcraft-engine --lib templates:: --locked
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo test -p designcraft --bin designcraft updates:: --locked
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cargo test -p designcraft-ui-egui --lib i18n:: --locked
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -82,6 +86,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Resolve update notification dependencies
+        run: cargo update --workspace
       - name: Prepare Tibetan font
         run: |
           source scripts/prepare-tibetan-font.sh
@@ -90,6 +96,7 @@ jobs:
       - name: Validate customized source and templates
         run: |
           cargo test -p designcraft-engine --lib templates:: --locked
+          cargo test -p designcraft --bin designcraft updates:: --locked
           cargo test -p designcraft-ui-egui --lib i18n:: --locked
           cargo test -p designcraft-ui-egui --lib tibetan_tests --locked
           cargo test -p designcraft-ui-egui --lib language_menu_is_next_to_help_and_switches_tibetan --locked
@@ -103,3 +110,60 @@ jobs:
             dist/release/tibetan-design-layout-*-macos-${{ matrix.arch }}.dmg
             dist/release/tibetan-design-layout-cli-*-macos-${{ matrix.arch }}.zip
 
+
+  publish:
+    name: Publish Layout 0.8.2
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      SOURCE_SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: Tibetan-Design-Layout-*
+          path: artifacts
+      - name: Verify and publish all platform installers
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir release-assets
+          for name in tibetan-design-layout-0.8.2-windows-x64.msi tibetan-design-layout-0.8.2-windows-x64-portable.zip tibetan-design-layout-0.8.2-macos-aarch64.dmg tibetan-design-layout-0.8.2-macos-x86_64.dmg; do
+            mapfile -t matches < <(find artifacts -type f -name "$name")
+            test "${#matches[@]}" -eq 1
+            test -s "${matches[0]}"
+            cp "${matches[0]}" "release-assets/$name"
+          done
+          (cd release-assets && sha256sum *.msi *.zip *.dmg > SHA256SUMS.txt && sha256sum -c SHA256SUMS.txt)
+          cat > notes.md <<'NOTES'
+          # Tibetan Design Layout — བོད་ཀྱི་ཤོག་ངོས་བཟོ་བཀོད།
+
+          Created by ནང་ཆེན་བཀྲ་ཤིས།
+
+          - New endless-knot application icon on Windows, Mac, welcome and About screens.
+          - Visible English / བོད་ཡིག language menu beside Help.
+          - 16 editable Pecha and book templates, including framed title/body leaves and bilingual layouts.
+          - Daily update notifications, manual Help check, opt-out and Skip this version.
+
+          Choose windows-x64.msi for Windows installation, or the portable ZIP. For Mac, choose aarch64 for Apple Silicon (M-series), or x86_64 for Intel. These builds are not publisher-signed/notarized. Pecha folio labels remain editable manual text; automatic imposition is not included.
+
+          Existing installations need this version installed once to receive future update notifications. Updates open the release page; installers are not downloaded or executed automatically.
+
+          More apps: https://nangchen.com · https://studytibetan.com · https://tibetanebook.com
+          NOTES
+          printf '\nSource commit: %s\n' "$SOURCE_SHA" >> notes.md
+          if gh release view v0.8.2 --json isDraft >/dev/null 2>&1; then
+            test "$(gh release view v0.8.2 --json isDraft --jq .isDraft)" = true
+            test "$(gh release view v0.8.2 --json targetCommitish --jq .targetCommitish)" = "$SOURCE_SHA"
+          else
+            gh release create v0.8.2 --target "$SOURCE_SHA" --title 'Tibetan Design Layout 0.8.2' --notes-file notes.md --draft
+          fi
+          gh release upload v0.8.2 release-assets/* --clobber
+          test "$(gh release view v0.8.2 --json assets --jq '.assets | length')" = 5
+          gh release edit v0.8.2 --notes-file notes.md --draft=false --latest
+          test "$(gh api repos/$GH_REPO/releases/latest --jq .tag_name)" = v0.8.2
+          echo "Published https://github.com/$GH_REPO/releases/tag/v0.8.2" >> "$GITHUB_STEP_SUMMARY"

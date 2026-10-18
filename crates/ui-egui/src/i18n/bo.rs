@@ -2,7 +2,7 @@
 pub const TABLE: &[(&str, &str)] = &[
     ("  Open Pecha sample  ", "  དཔེ་ཆའི་དཔེ་མཚོན་ཁ་འབྱེད།  "),
     ("Template Library", "དཔེ་གཞིའི་མཛོད"),
-    ("Welcome to Tibetan Design Layout", "Tibetan Design Layout ལ་ཕེབས་པར་དགའ་བསུ་ཞུ།"),
+    ("Welcome to Tibetan Design Layout", "བོད་ཀྱི་ཤོག་ངོས་བཟོ་བཀོད་ལ་ཕེབས་པར་དགའ་བསུ་ཞུ།"),
     ("100%", "100%"),
     ("16 Bits/Channel", "རྒྱུ་ལམ་རེར་བིཊ་16"),
     ("16 bit", "བིཊ་16"),
@@ -1035,7 +1035,7 @@ pub const TABLE: &[(&str, &str)] = &[
     ("Themes", "རྣམ་བཟོ་རྣམས"),
     ("Threshold", "མཚམས་ཐིག"),
     ("Tibetan", "བོད་ཡིག"),
-    ("Tibetan Design Layout", "Tibetan Design Layout"),
+    ("Tibetan Design Layout", "བོད་ཀྱི་ཤོག་ངོས་བཟོ་བཀོད།"),
     ("Tibetan Design Website", "Tibetan Design དྲ་ཚིགས"),
     ("Tibetan Design on GitHub", "GitHub ནང་གི་Tibetan Design"),
     ("Tibetan Design website", "Tibetan Design དྲ་ཚིགས"),

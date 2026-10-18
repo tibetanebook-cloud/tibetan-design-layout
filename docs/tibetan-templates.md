@@ -41,3 +41,11 @@ Pecha presets now create a title leaf plus front/back body leaves (the title-onl
 These are original layouts based on the user-provided PechaMaker screenshot and the [PechaMaker layout documentation](https://www.pechamaker.com/FAQ.html). No PechaMaker code, fonts, or copyrighted sample text is bundled. Leaves use manual editable folio labels; adding more leaves does not automatically update numbering or thread text between them. The templates are not printer imposition sheets.
 
 The top menu now includes **Language** immediately before Help; English and བོད་ཡིག · Tibetan are available there as well as through Edit → Interface Language.
+
+## Layout 0.8.2 application update
+
+The supplied endless-knot icon is used by the Windows executable and installer, Mac Dock and app bundle, welcome screen and About window. The Tibetan product name is **བོད་ཀྱི་ཤོག་ངོས་བཟོ་བཀོད།**.
+
+Choose **English / བོད་ཡིག** beside Help to switch languages. The existing Pecha and book library remains under File → Template Library.
+
+The desktop app checks the official GitHub release metadata after startup and then daily. Help → Check for Updates checks manually. About includes an automatic-check opt-out. A newer compatible stable release offers Open download page, Later and Skip this version. It never downloads or runs an installer automatically. Existing installations must install this release once to receive these notifications.

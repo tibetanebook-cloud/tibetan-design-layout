@@ -1,5 +1,7 @@
 # Tibetan Design Layout
 
+**བོད་ཀྱི་ཤོག་ངོས་བཟོ་བཀོད།**
+
 ![StudyTibetan logo](assets/app-icon/designcraft-1024.png)
 
 Free native page layout and publishing software customized from DesignCraft, with Tibetan and English interface options and StudyTibetan branding.

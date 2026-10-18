@@ -17,11 +17,13 @@ mod logging;
 #[cfg(target_os = "macos")]
 mod native_menu;
 mod profile;
+mod updates;
 
 use designcraft_engine::Session;
 use designcraft_ui_egui::{DesignApp, Services};
 
 struct App {
+    updates: updates::State,
     app: DesignApp,
     #[cfg(target_os = "macos")]
     menu: Option<native_menu::NativeMenu>,
@@ -52,12 +54,14 @@ impl eframe::App for App {
             }
         }
         self.app.logic(ctx);
+        self.updates.tick(&mut self.app, ctx);
     }
     fn raw_input_hook(&mut self, _ctx: &egui::Context, raw: &mut egui::RawInput) {
         self.app.raw_input_hook(raw);
     }
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         self.app.ui(ui);
+        self.updates.show(&mut self.app, ui.ctx());
     }
     fn on_exit(&mut self) {
         // A normal exit before the third frame is not a crash.
@@ -357,6 +361,7 @@ fn main() -> eframe::Result {
                 }
             }
             Ok(Box::new(App {
+                updates: updates::State::default(),
                 app,
                 #[cfg(target_os = "macos")]
                 menu: None,

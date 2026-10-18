@@ -70,6 +70,6 @@ Generated-in-code art is original and has no file to list: the UI icon set (`cra
 
 ## Tibetan Design Layout customization
 
-`assets/app-icon/designcraft-1024.png`, `assets/app-icon/designcraft.ico` and the existing hicolor PNG paths: replaced with the user-supplied StudyTibetan logo previously supplied for Tibetan Design. No separate public asset license is asserted. The Mac ICNS is generated from the supplied PNG at packaging time.
+`assets/app-icon/designcraft-1024.png`, `assets/app-icon/designcraft.ico` and the existing hicolor PNG paths: replaced with the user-supplied endless-knot Layout artwork on 2026-10-17. The runtime Mac PNG and ICNS also use this artwork. No separate public asset license is asserted. The Mac ICNS is generated from the supplied PNG at packaging time.
 
 `assets/app-icon/OFL-Tibetan.txt`: Noto Serif Tibetan font license, The Noto Project Authors, https://github.com/google/fonts/tree/main/ofl/notoseriftibetan, SIL OFL 1.1. Font binaries are verified external build inputs, never committed.

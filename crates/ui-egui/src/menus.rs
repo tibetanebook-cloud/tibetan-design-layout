@@ -199,6 +199,7 @@ pub const UI_COMMANDS: &[(&str, &str, Option<&str>, &str)] = &[
         "{on?: bool, at?: [x, y] (points from the canvas's top-left)} — the Contextual Task Bar stays where it is (or at `at`) instead of following the selection; with neither, toggles",
     ),
     ("window.taskBarReset", "Reset Bar Position", None, "{} — the Contextual Task Bar follows the selection again, under it"),
+    ("help.checkUpdates", "Check for Updates…", None, "{} — check the official release page for a newer version"),
     ("help.discord", "More Tibetan apps…", None, "{} — opens https://studytibetan.com in the browser"),
     ("help.appPage", "Tibetan Design Layout Website…", None, "{} — opens https://nangchen.com/apps/designcraft"),
     ("help.github", "Tibetan Design Layout on GitHub…", None, "{} — opens https://github.com/tibetanebook-cloud/tibetan-design-layout"),
@@ -850,6 +851,8 @@ pub const MENUS: &[(&str, &[&str])] = &[
     (
         "Help",
         &[
+            "ui:help.checkUpdates",
+            "-",
             "ui:help.discord",
             "-",
             "ui:help.appPage",
@@ -1569,6 +1572,10 @@ fn run_ui_inner(app: &mut DesignApp, id: &str, p: &Value) -> Option<Result<Value
             app.ui.task_bar_pin = None;
             Ok(Value::Null)
         }
+        "help.checkUpdates" => {
+            app.ui.update_requested = true;
+            Ok(json!({"requested": true}))
+        }
         "help.about" => {
             if let Some(tab) = p.get("tab").and_then(Value::as_str) {
                 let Some(i) = crate::about::ABOUT_TABS.iter().position(|t| t.eq_ignore_ascii_case(tab)) else {
@@ -2268,6 +2275,10 @@ fn forward_to_text_edit(app: &mut DesignApp, ctx: &egui::Context, id: &str) -> b
 }
 
 /// The menu bar contents (inside the app bar; macOS uses the native menu instead).
+pub fn menu_title<'a>(lang: &str, title: &'a str) -> &'a str {
+    if title == "Language" { "English / བོད་ཡིག" } else { crate::i18n::tr(lang, title) }
+}
+
 pub fn menu_bar(app: &mut DesignApp, ui: &mut egui::Ui) {
     let lang = app.ui.language.clone();
     let mut menus = menu_tree();
@@ -2275,7 +2286,9 @@ pub fn menu_bar(app: &mut DesignApp, ui: &mut egui::Ui) {
         menus.reverse();
     }
     for (menu, entries) in menus {
-        menu_button(ui, crate::rtl::widget(ui, crate::i18n::tr(&lang, menu)), |ui| {
+        let label = egui::RichText::new(menu_title(&lang, menu));
+        let label = if menu == "Language" { label.strong().color(crate::theme::Tokens::get(ui.ctx()).accent) } else { label };
+        menu_button(ui, crate::rtl::widget(ui, label), |ui| {
             if crate::i18n::is_rtl(&lang) {
                 ui.set_max_width(320.0);
             }
@@ -3081,6 +3094,9 @@ mod tests {
 
     #[test]
     fn language_menu_is_next_to_help_and_switches_tibetan() {
+        assert_eq!(menu_title("", "Language"), "English / བོད་ཡིག");
+        assert_eq!(menu_title("bo", "Language"), "English / བོད་ཡིག");
+
         let menus = menu_tree();
         let index = menus.iter().position(|(title, _)| *title == "Language").unwrap();
         assert_eq!(menus.get(index + 1).map(|(title, _)| *title), Some("Help"));

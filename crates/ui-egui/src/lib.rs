@@ -172,6 +172,12 @@ impl Default for PdfExportSettings {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct UiState {
+    /// Background release checks; opt-out persists with other preferences.
+    pub automatic_updates: bool,
+    pub last_update_check: u64,
+    pub skipped_update: String,
+    #[serde(skip)]
+    pub update_requested: bool,
     pub brightness: theme::Brightness,
     pub screen_mode: ScreenMode,
     pub frame_edges: bool,
@@ -319,6 +325,10 @@ pub struct UiState {
 impl Default for UiState {
     fn default() -> Self {
         UiState {
+            automatic_updates: true,
+            last_update_check: 0,
+            skipped_update: String::new(),
+            update_requested: false,
             brightness: theme::Brightness::MediumDark,
             screen_mode: ScreenMode::Normal,
             frame_edges: true,

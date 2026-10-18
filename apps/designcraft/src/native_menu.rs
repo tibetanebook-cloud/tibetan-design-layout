@@ -69,7 +69,7 @@ impl NativeMenu {
         items.insert("dc-quit".into(), ("app.quit".into(), serde_json::Value::Null, Handle::Plain(quit)));
         let _ = menu.append(&app_menu);
         for (title, entries) in menus::menu_tree() {
-            let sub = Submenu::new(designcraft_ui_egui::i18n::tr(&app.ui.language, title), true);
+            let sub = Submenu::new(menus::menu_title(&app.ui.language, title), true);
             build(app, &sub, &entries, &mut items, &mut counter);
             let _ = menu.append(&sub);
         }

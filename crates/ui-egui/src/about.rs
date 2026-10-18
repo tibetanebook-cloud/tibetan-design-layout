@@ -156,7 +156,15 @@ pub fn show(app: &mut DesignApp, ctx: &egui::Context) {
                 .size(12.0)
                 .color(t.text_dim),
             ));
+            ui.label(crate::rtl::widget(ui, "བོད་ཀྱི་ཤོག་ངོས་བཟོ་བཀོད།"));
             ui.label(crate::rtl::widget(ui, "Created by ནང་ཆེན་བཀྲ་ཤིས།"));
+            let update_label = if app.ui.language == "bo" {
+                "གསར་སྒྱུར་རང་འགུལ་གྱིས་ཞིབ་བཤེར།"
+            } else {
+                "Automatically check for updates"
+            };
+            ui.checkbox(&mut app.ui.automatic_updates, update_label);
+
             ui.add_space(16.0);
             if discord_button(ui, "More Tibetan apps", vec2(300.0, 40.0)) {
                 open = Some("discord");

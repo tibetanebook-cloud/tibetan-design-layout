@@ -3134,6 +3134,23 @@ fn column(lang: &str) -> Option<usize> {
 
 /// `s` in `lang` (English, or the string itself, when there's no translation).
 pub fn tr<'a>(lang: &str, s: &'a str) -> &'a str {
+    if s == "Check for Updates…" {
+        return match lang {
+            "bo" => "གསར་སྒྱུར་ཡོད་མེད་ཞིབ་བཤེར…",
+            "de" => "Nach Updates suchen…",
+            "fr" => "Rechercher des mises à jour…",
+            "es" => "Buscar actualizaciones…",
+            "ja" => "更新を確認…",
+            "zh" => "检查更新…",
+            "ar" => "التحقق من وجود تحديثات…",
+            "pt-br" => "Verificar atualizações…",
+            "it" => "Controlla aggiornamenti…",
+            "uk" => "Перевірити оновлення…",
+            "ka" => "განახლებების შემოწმება…",
+            _ => s,
+        };
+    }
+
     static TIBETAN: OnceLock<HashMap<&'static str, &'static str>> = OnceLock::new();
     if lang == "bo" {
         return TIBETAN.get_or_init(|| bo::TABLE.iter().copied().collect()).get(s).copied().unwrap_or(s);
