@@ -290,6 +290,15 @@ pub(crate) fn cjk_pair(a: &Glyph, b: &Glyph, korean_char_breaks: bool) -> bool {
 }
 
 /// [`cjk_break_between`] for glyphs `a` and `b` (see [`cjk_pair`]).
+// Tibetan syllables end with the ordinary tsheg (U+0F0B). U+0F0C is
+// deliberately non-breaking. Never separate a shaped cluster or strand shad.
+fn tibetan_break(a: &Glyph, b: &Glyph) -> bool {
+    a.ch == '\u{0f0b}'
+        && a.byte != b.byte
+        && !b.no_break
+        && !matches!(b.ch, '\u{0f0b}'..='\u{0f14}' | '\u{0f3b}' | '\u{0f3d}' | '\u{0f71}'..='\u{0fbc}')
+}
+
 fn cjk_break(a: &Glyph, b: &Glyph, sp: &Spacing) -> bool {
     cjk_pair(a, b, sp.korean_char_breaks) && kinsoku_allows(a.ch, b.ch)
 }
@@ -447,7 +456,7 @@ fn items(glyphs: &[Glyph], hyph_after: &[bool], emergency_after: &[bool], sp: &S
                 p.hang = right_hang(g, sp);
                 p.edge_elastic = crate::mojikumi::end_elastic(g, sp.justify, sp.kinsoku_priority != 3);
                 push_inword(&mut it, &mut ig, p, i + 1, sp);
-            } else if matches!(g.ch, '\u{2013}' | '\u{2014}' | '/') || g.break_after.unwrap_or_else(|| cjk_break(g, &glyphs[i + 1], sp)) {
+            } else if matches!(g.ch, '\u{2013}' | '\u{2014}' | '/') || g.break_after.unwrap_or_else(|| (tibetan_break(g, &glyphs[i + 1]) || cjk_break(g, &glyphs[i + 1], sp))) {
                 let mut p = Item::penalty(0.0, 0.0, false);
                 p.hang = right_hang(g, sp);
                 p.edge_elastic = crate::mojikumi::end_elastic(g, sp.justify, sp.kinsoku_priority != 3);
@@ -932,7 +941,7 @@ pub fn greedy(
             shrink += sp.box_elastic(g).1.iter().sum::<f64>();
             if i + 1 < n && !glyphs[i + 1].is_space() && !g.no_break && g.break_after != Some(false) {
                 if matches!(g.ch, '-' | '\u{2010}' | '\u{2013}' | '\u{2014}' | '/')
-                    || g.break_after.unwrap_or_else(|| cjk_break(g, &glyphs[i + 1], sp))
+                    || g.break_after.unwrap_or_else(|| (tibetan_break(g, &glyphs[i + 1]) || cjk_break(g, &glyphs[i + 1], sp)))
                 {
                     last_ok = Some((i + 1, false));
                     if x - hang_r <= w + FIT_EPS {

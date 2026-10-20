@@ -193,11 +193,11 @@ fn pecha_border(s: &mut Session, spread: usize, r: [f64; 4], weight: f64) -> Res
     s.execute("object.stroke", &json!({"swatch": "[Black]", "weight": weight}))?;
     Ok(())
 }
-fn pecha_text(s: &mut Session, spread: usize, r: [f64; 4], content: &str, size: f64, leading: f64, tibetan: bool, center: bool) -> Result<()> {
-    s.execute("frame.create", &json!({"spread": spread, "rect": r, "content": "text", "text": content, "caret": false}))?;
+fn pecha_text(s: &mut Session, spread: usize, r: [f64; 4], content: &str, size: f64, leading: f64, tibetan: bool, center: bool) -> Result<u64> {
+    let frame = s.execute("frame.create", &json!({"spread": spread, "rect": r, "content": "text", "text": content, "caret": false}))?;
     s.execute("type.char", &json!({"attrs": {"fontFamily": if tibetan { "Noto Serif Tibetan" } else { "Source Serif 4" }, "size": size, "leading": {"kind": "points", "value": leading}}}))?;
     s.execute("type.para", &json!({"attrs": {"hyphenate": false, "align": if center { "center" } else { "left" }}}))?;
-    Ok(())
+    frame["id"].as_u64().ok_or_else(|| bad("template", "text frame has no identifier"))
 }
 fn create_pecha(s: &mut Session, id: &str) -> Result<Value> {
     let t = TEMPLATES.iter().find(|t| t.id == id).ok_or_else(|| bad("template", "unknown template"))?;
@@ -207,6 +207,8 @@ fn create_pecha(s: &mut Session, id: &str) -> Result<Value> {
     let pages = if title_only { 1 } else { 3 };
     let created =
         s.execute("file.new", &json!({"title": t.name, "width": w, "height": h, "pages": pages, "facingPages": false, "margins": 10.0 * mm}))?;
+    let mut body_frames = Vec::new();
+    let mut translation_frames = Vec::new();
     for spread in 0..pages {
         let (left, top, right, bottom) = (10.0 * mm, 10.0 * mm, w - 10.0 * mm, h - 10.0 * mm);
         let gap = 1.2 * mm;
@@ -280,32 +282,34 @@ fn create_pecha(s: &mut Session, id: &str) -> Result<Value> {
             } else {
                 4
             };
-            let body = samples.iter().take(lines).copied().collect::<Vec<_>>().join("\n");
+            let mut body = samples.iter().take(lines).copied().collect::<Vec<_>>().join("\n");
+            if spread == 1 { body.push(designcraft_doc::story::FRAME_BREAK); }
             let y0 = top + inset * 1.5;
             let y1 = bottom - inset;
             if t.bilingual {
                 let middle = (y0 + y1) * 0.5;
-                pecha_text(s, spread, [body_left, y0, body_right, middle - inset], &body, t.size, t.size * 1.65, true, false)?;
+                body_frames.push(pecha_text(s, spread, [body_left, y0, body_right, middle - inset], &body, t.size, t.size * 1.65, true, false)?);
                 pecha_rule(s, spread, [body_left, middle], [body_right, middle], 0.35)?;
-                if id == "pechaCommentary" {
-                    pecha_text(s, spread, [body_left, middle + inset, body_right, y1], "འགྲེལ་བཤད་འདིར་བྲིས།", 20.0, 33.0, true, false)?;
-                } else {
-                    pecha_text(
-                        s,
-                        spread,
-                        [body_left, middle + inset, body_right, y1],
-                        "Replace this text with your English translation.",
-                        12.0,
-                        19.0,
-                        false,
-                        false,
-                    )?;
-                }
+                let placeholder = if id == "pechaCommentary" { "འགྲེལ་བཤད་འདིར་བྲིས།" } else { "Replace this text with your English translation." };
+                let mut placeholder = placeholder.to_owned();
+                if spread == 1 { placeholder.push(designcraft_doc::story::FRAME_BREAK); }
+                let commentary = id == "pechaCommentary";
+                translation_frames.push(pecha_text(s, spread, [body_left, middle + inset, body_right, y1],
+                    &placeholder, if commentary { 20.0 } else { 12.0 }, if commentary { 33.0 } else { 19.0 }, commentary, false)?);
             } else {
-                pecha_text(s, spread, [body_left, y0, body_right, y1], &body, t.size, t.size * 1.65, true, false)?;
+                body_frames.push(pecha_text(s, spread, [body_left, y0, body_right, y1], &body, t.size, t.size * 1.65, true, false)?);
             }
         }
     }
+    // Body leaves share a story; titles and side labels stay independent. The
+    // placeholder frame break displays sample text on both sides and disappears
+    // when the user selects the body story and replaces it with their own text.
+    for frames in [&body_frames, &translation_frames] {
+        for pair in frames.windows(2) {
+            s.execute("text.thread", &json!({"from": pair[0], "to": pair[1]}))?;
+        }
+    }
+
     Ok(created)
 }
 
