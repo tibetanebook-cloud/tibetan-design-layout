@@ -112,9 +112,9 @@ pub fn show(app: &mut DesignApp, ctx: &egui::Context) {
             ui.allocate_ui_with_layout(vec2(ui.available_width(), h), egui::Layout::top_down(egui::Align::Min), |ui| {
                 ui.set_min_height(h);
                 if app.ui.about_tab == 1 {
-                    crate::credits::contributors_ui(ui);
+                    crate::credits::contributors_ui(ui, &app.ui.language);
                 } else {
-                    crate::credits::models_ui(ui);
+                    crate::credits::models_ui(ui, &app.ui.language);
                 }
             });
             ui.separator();
@@ -184,7 +184,7 @@ pub fn show(app: &mut DesignApp, ctx: &egui::Context) {
                 for (text, key) in
                     [("Tibetan Design Layout page", "appPage"), ("GitHub", "github"), ("nangchen.com", "website"), ("Report an issue", "issues")]
                 {
-                    if link(ui, text, links::get(key).unwrap_or_default(), t.accent) {
+                    if link(ui, crate::i18n::tr(&app.ui.language, text), links::get(key).unwrap_or_default(), t.accent) {
                         open = Some(key);
                     }
                     ui.add_space(6.0);

@@ -1,11 +1,11 @@
 <#
 .SYNOPSIS
-  Build, sign and package DesignCraft for Windows.
+  Build, sign and package Tibetan Design Layout for Windows.
 
 .DESCRIPTION
   Produces, in $env:DIST (default: dist/release):
     designcraft-<version>-windows-<arch>.msi            per-machine installer (WiX v5)
-    designcraft-<version>-windows-<arch>-portable.zip   designcraft.exe + designcraft-cli.exe
+    designcraft-<version>-windows-<arch>-portable.zip   designcraft.exe + designcraft-cli.exe + portable.txt
 
   The binaries link the C runtime statically (+crt-static), so neither the MSI nor the portable
   zip needs the Visual C++ redistributable. Signing is delegated to sign.ps1 (skipped with a
@@ -54,7 +54,7 @@ New-Item -ItemType Directory -Force -Path $Dist | Out-Null
 if (-not $env:DESIGNCRAFT_BUILD_SHA) { $env:DESIGNCRAFT_BUILD_SHA = (git -C $Root rev-parse HEAD 2>$null) }
 if (-not $env:DESIGNCRAFT_BUILD_DATE) { $env:DESIGNCRAFT_BUILD_DATE = (Get-Date).ToUniversalTime().ToString('yyyy-MM-dd') }
 
-Write-Output "DesignCraft $Version for Windows $Arch ($Target)"
+Write-Output "Tibetan Design Layout $Version for Windows $Arch ($Target)"
 
 if (-not $SkipBuild) {
   # Static CRT: no VC++ redistributable needed. Scoped to the target so host build scripts and
@@ -103,7 +103,7 @@ Copy-Item -LiteralPath (Join-Path $Root 'assets/app-icon/OFL-Tibetan.txt') -Dest
 # ---- MSI ---------------------------------------------------------------------------------------
 $Msi = Join-Path $Dist "tibetan-design-layout-$Version-windows-$Arch.msi"
 Invoke-Native 'wix build' {
-  wix build (Join-Path $PSScriptRoot 'designcraft.wxs') -arch $Arch `
+  wix build (Join-Path $PSScriptRoot 'designcraft.wxs') (Join-Path $PSScriptRoot 'installer-ui.wxs') -arch $Arch `
     -d "Version=$MsiVersion" -d "BinDir=$Stage" -d "IconPath=$(Join-Path $Root 'assets\app-icon\designcraft.ico')" `
     -o $Msi
 }
@@ -118,6 +118,12 @@ Remove-Item -Recurse -Force $Portable -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path $Portable | Out-Null
 Copy-Item (Join-Path $Stage '*.exe') $Portable
 if (-not (Test-Path -LiteralPath (Join-Path $Portable 'Tibetan Design Layout.exe'))) { throw 'Portable application executable is missing' }
+# The marker that makes Tibetan Design Layout keep its data in .\Tibetan Design LayoutData next to the exe instead of
+# %APPDATA% (#574; see apps/designcraft/src/profile.rs).
+Set-Content -Encoding ascii -Path (Join-Path $Portable 'portable.txt') -Value @(
+  'Tibetan Design Layout portable: preferences, logs and crash recovery are kept in the Tibetan Design LayoutData folder',
+  'next to designcraft.exe. Delete this file to use %APPDATA%\Tibetan Design Layout instead.'
+)
 foreach ($f in 'README.md', 'LICENSE', 'LICENSE-MIT', 'LICENSE-APACHE', 'NOTICE', 'ASSETS.md') {
   $p = Join-Path $Root $f
   if (Test-Path $p) { Copy-Item $p $Portable }
