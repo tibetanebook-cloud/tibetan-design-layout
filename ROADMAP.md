@@ -640,3 +640,5 @@ Newest first.
 The shared craft-installer UI preserves this revision's install options and provides persistent installation, repair and Windows Settings removal completion screens. Silent modes stay unattended. Earlier Windows acceptance is recorded in packaging/windows/README.md; normal CI and production-profile upgrade qualification against pinned current releases are in progress. No release or PR has been published.
 
 - **2026-10-15** · Windows recovery folders validate the identity of the live locked file without reading it through a second handle. Missing or replaced locks disable writes and cleanup; regression tests cover retained exclusive locking and replacement-file protection. No readiness percentage change.
+
+- Tibetan Layout 0.9.1: upstream 443ea464 integrated with original Tibetan branding, expanded tool/menu translations and linked Pecha body stories; Tibetan tsheg wrapping regression coverage.

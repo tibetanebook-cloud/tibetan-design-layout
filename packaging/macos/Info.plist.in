@@ -53,13 +53,13 @@
   <array>
     <dict>
       <key>CFBundleTypeName</key>
-      <string>DesignCraft Document</string>
+      <string>Tibetan Design Layout Document</string>
       <key>CFBundleTypeRole</key>
       <string>Editor</string>
       <key>LSHandlerRank</key>
       <string>Owner</string>
       <key>CFBundleTypeIconFile</key>
-      <string>DesignCraft</string>
+      <string>Tibetan Design Layout</string>
       <key>LSItemContentTypes</key>
       <array><string>ai.storyteller.designcraft.document</string></array>
     </dict>
@@ -84,7 +84,7 @@
       <key>UTTypeIdentifier</key>
       <string>ai.storyteller.designcraft.document</string>
       <key>UTTypeDescription</key>
-      <string>DesignCraft Document</string>
+      <string>Tibetan Design Layout Document</string>
       <key>UTTypeConformsTo</key>
       <array>
         <string>public.data</string>

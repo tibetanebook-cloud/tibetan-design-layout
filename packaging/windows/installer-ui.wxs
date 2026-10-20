@@ -207,7 +207,7 @@
           <RegistryValue Name="DisplayName" Type="string" Value="[ProductName] (Craft Apps)" KeyPath="yes" />
           <RegistryValue Name="DisplayVersion" Type="string" Value="[ProductVersion]" />
           <RegistryValue Name="Publisher" Type="string" Value="[Manufacturer]" />
-          <RegistryValue Name="DisplayIcon" Type="string" Value="&quot;[INSTALLFOLDER]designcraft.exe&quot;,0" />
+          <RegistryValue Name="DisplayIcon" Type="string" Value="&quot;[INSTALLFOLDER]Tibetan Design Layout.exe&quot;,0" />
           <RegistryValue Name="InstallLocation" Type="string" Value="[INSTALLFOLDER]" />
           <RegistryValue Name="URLInfoAbout" Type="string" Value="[ARPURLINFOABOUT]" />
           <RegistryValue Name="URLUpdateInfo" Type="string" Value="[ARPURLUPDATEINFO]" />

@@ -283,19 +283,35 @@ fn create_pecha(s: &mut Session, id: &str) -> Result<Value> {
                 4
             };
             let mut body = samples.iter().take(lines).copied().collect::<Vec<_>>().join("\n");
-            if spread == 1 { body.push(designcraft_doc::story::FRAME_BREAK); }
+            if spread == 1 {
+                body.push(designcraft_doc::story::FRAME_BREAK);
+            }
             let y0 = top + inset * 1.5;
             let y1 = bottom - inset;
             if t.bilingual {
                 let middle = (y0 + y1) * 0.5;
                 body_frames.push(pecha_text(s, spread, [body_left, y0, body_right, middle - inset], &body, t.size, t.size * 1.65, true, false)?);
                 pecha_rule(s, spread, [body_left, middle], [body_right, middle], 0.35)?;
-                let placeholder = if id == "pechaCommentary" { "འགྲེལ་བཤད་འདིར་བྲིས།" } else { "Replace this text with your English translation." };
+                let placeholder = if id == "pechaCommentary" {
+                    "འགྲེལ་བཤད་འདིར་བྲིས།"
+                } else {
+                    "Replace this text with your English translation."
+                };
                 let mut placeholder = placeholder.to_owned();
-                if spread == 1 { placeholder.push(designcraft_doc::story::FRAME_BREAK); }
+                if spread == 1 {
+                    placeholder.push(designcraft_doc::story::FRAME_BREAK);
+                }
                 let commentary = id == "pechaCommentary";
-                translation_frames.push(pecha_text(s, spread, [body_left, middle + inset, body_right, y1],
-                    &placeholder, if commentary { 20.0 } else { 12.0 }, if commentary { 33.0 } else { 19.0 }, commentary, false)?);
+                translation_frames.push(pecha_text(
+                    s,
+                    spread,
+                    [body_left, middle + inset, body_right, y1],
+                    &placeholder,
+                    if commentary { 20.0 } else { 12.0 },
+                    if commentary { 33.0 } else { 19.0 },
+                    commentary,
+                    false,
+                )?);
             } else {
                 body_frames.push(pecha_text(s, spread, [body_left, y0, body_right, y1], &body, t.size, t.size * 1.65, true, false)?);
             }
@@ -316,6 +332,29 @@ fn create_pecha(s: &mut Session, id: &str) -> Result<Value> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn pecha_body_stories_link_front_and_back_and_accept_long_replacement() {
+        for t in TEMPLATES.iter().filter(|t| t.id.starts_with("pecha") && t.id != "pechaTitle") {
+            let mut s = Session::new();
+            create_pecha(&mut s, t.id).unwrap();
+            let doc = &mut s.active_mut().unwrap().doc;
+            let stories: Vec<_> = doc.stories.iter().filter(|(_, st)| st.frames.len() == 2).map(|(id, _)| *id).collect();
+            assert_eq!(stories.len(), if t.bilingual { 2 } else { 1 }, "{}", t.id);
+            for sid in stories {
+                let st = doc.story(sid).unwrap();
+                let frames = st.frames.clone();
+                assert!(st.text.contains(designcraft_doc::story::FRAME_BREAK));
+                let length = st.len();
+                let pasted = "བོད་ཡིག་འདིར་མུ་མཐུད་དུ་བྲིས་".repeat(160);
+                doc.story_mut(sid).unwrap().replace(0..length, &pasted);
+                let composed = designcraft_compose::compose_story(doc, sid, &Default::default());
+                assert!(composed.frames.iter().any(|f| f.frame == frames[1] && !f.range.is_empty()), "{}: text must reach back", t.id);
+                assert_eq!(doc.story(sid).unwrap().text, pasted, "no text lost on paste");
+            }
+            doc.check().unwrap();
+        }
+    }
+
     #[test]
     fn every_template_creates_editable_document_and_roundtrips() {
         for t in TEMPLATES {

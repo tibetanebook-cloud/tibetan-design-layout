@@ -32,4 +32,6 @@ jobs:
     uses: storytold/craft-common-actions/.github/workflows/windows-arm64.yml@main
     with:
       app-name: designcraft
-      app-dir: DesignCraft
+      app-dir: Tibetan Design Layout
+      main-binary: Tibetan Design Layout.exe
+      cli-binary: designcraft-cli.exe

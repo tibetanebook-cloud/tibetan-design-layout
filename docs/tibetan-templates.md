@@ -2,7 +2,7 @@
 
 Created by ནང་ཆེན་བཀྲ་ཤིས།.
 
-Choose File → Template Library. Each template opens a new native document with editable text; borders and image placeholders are editable frames. Replace the placeholder text, add pages and thread frames as needed. The sample folio is editable text, not automatic numbering. Pecha presets include title and front/back leaves; book presets are single pages; duplex imposition and automatic Tibetan folio numbering are not implemented by this library.
+Choose File → Template Library. Each template opens a new native document with editable text; borders and image placeholders are editable frames. Front/back body frames in new Pecha templates are linked. Double-click body text with the Type tool, select all text in that story, then paste to replace both placeholders. The sample includes a frame break to show text on both sides; replacing the whole story removes it. Add pages and thread extra frames as needed. The sample folio is editable text, not automatic numbering. Pecha presets include title and front/back leaves; book presets are single pages; duplex imposition and automatic Tibetan folio numbering are not implemented by this library.
 
 | Template | Trim size (mm) | Text size (pt) |
 |---|---:|---:|
@@ -40,7 +40,7 @@ Pecha presets now create a title leaf plus front/back body leaves (the title-onl
 
 These are original layouts based on the user-provided PechaMaker screenshot and the [PechaMaker layout documentation](https://www.pechamaker.com/FAQ.html). No PechaMaker code, fonts, or copyrighted sample text is bundled. Leaves use manual editable folio labels; adding more leaves does not automatically update numbering or thread text between them. The templates are not printer imposition sheets.
 
-The top menu now includes **Language** immediately before Help; English and བོད་ཡིག · Tibetan are available there as well as through Edit → Interface Language.
+The top menu now includes **Language** immediately before Help; English and བོད་ཡིག · Tibetan are available there or through Preferences → Interface Language.
 
 ## Layout 0.8.2 application update
 
@@ -49,3 +49,11 @@ The supplied endless-knot icon is used by the Windows executable and installer, 
 Choose **English / བོད་ཡིག** beside Help to switch languages. The existing Pecha and book library remains under File → Template Library.
 
 The desktop app checks the official GitHub release metadata after startup and then daily. Help → Check for Updates checks manually. About includes an automatic-check opt-out. A newer compatible stable release offers Open download page, Later and Skip this version. It never downloads or runs an installer automatically. Existing installations must install this release once to receive these notifications.
+
+## Version 0.9.1: Tibetan text flow
+
+New Pecha templates link front and back body frames into one story. Bilingual/commentary templates maintain two independent linked stories, so Tibetan text never flows into the translation area. Titles and folio labels remain independent. Existing saved documents retain their existing frame connections; use Thread Text Frames or create a fresh template to use the new structure.
+
+Normal Tibetan tsheg (U+0F0B) provides a syllable wrapping opportunity, without breaking a stacked syllable or leaving shad at the start of a line. The non-breaking tsheg (U+0F0C) remains non-breaking. Explicit pasted newlines and frame breaks are preserved; remove those when continuous reflow is desired. Content beyond the supplied two body leaves remains overset until more frames/pages are added.
+
+Reference: [Unicode Tibetan line breaking](https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-13/).

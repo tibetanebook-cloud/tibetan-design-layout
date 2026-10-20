@@ -14,8 +14,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - name: Resolve update notification dependencies
-        run: cargo update --workspace
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
@@ -28,6 +26,8 @@ jobs:
       - name: Validate customized source and templates
         shell: pwsh
         run: |
+          cargo test -p designcraft-compose --lib --locked
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cargo test -p designcraft-engine --lib templates:: --locked
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cargo test -p designcraft --bin designcraft updates:: --locked
@@ -86,8 +86,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - name: Resolve update notification dependencies
-        run: cargo update --workspace
       - name: Prepare Tibetan font
         run: |
           source scripts/prepare-tibetan-font.sh
@@ -95,6 +93,7 @@ jobs:
           echo "CRAFT_FONTS_REQUIRED=1" >> "$GITHUB_ENV"
       - name: Validate customized source and templates
         run: |
+          cargo test -p designcraft-compose --lib --locked
           cargo test -p designcraft-engine --lib templates:: --locked
           cargo test -p designcraft --bin designcraft updates:: --locked
           cargo test -p designcraft-ui-egui --lib i18n:: --locked
@@ -112,7 +111,7 @@ jobs:
 
 
   publish:
-    name: Publish Layout 0.8.2
+    name: Publish Layout 0.9.1
     needs: [windows, macos]
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -132,7 +131,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir release-assets
-          for name in tibetan-design-layout-0.8.2-windows-x64.msi tibetan-design-layout-0.8.2-windows-x64-portable.zip tibetan-design-layout-0.8.2-macos-aarch64.dmg tibetan-design-layout-0.8.2-macos-x86_64.dmg; do
+          for name in tibetan-design-layout-0.9.1-windows-x64.msi tibetan-design-layout-0.9.1-windows-x64-portable.zip tibetan-design-layout-0.9.1-macos-aarch64.dmg tibetan-design-layout-0.9.1-macos-x86_64.dmg; do
             mapfile -t matches < <(find artifacts -type f -name "$name")
             test "${#matches[@]}" -eq 1
             test -s "${matches[0]}"
@@ -144,7 +143,10 @@ jobs:
 
           Created by ནང་ཆེན་བཀྲ་ཤིས།
 
-          - New endless-knot application icon on Windows, Mac, welcome and About screens.
+          - Updated from upstream 0.9 with font, layout and text-threading fixes; Tibetan branding retained.
+          - 129 additional Tibetan tool, template and page-layout labels.
+          - Tibetan syllable wrapping at tsheg and linked front/back Pecha body frames.
+          - Original endless-knot application icon on Windows and Mac.
           - Visible English / བོད་ཡིག language menu beside Help.
           - 16 editable Pecha and book templates, including framed title/body leaves and bilingual layouts.
           - Daily update notifications, manual Help check, opt-out and Skip this version.
@@ -156,14 +158,14 @@ jobs:
           More apps: https://nangchen.com · https://studytibetan.com · https://tibetanebook.com
           NOTES
           printf '\nSource commit: %s\n' "$SOURCE_SHA" >> notes.md
-          if gh release view v0.8.2 --json isDraft >/dev/null 2>&1; then
-            test "$(gh release view v0.8.2 --json isDraft --jq .isDraft)" = true
-            test "$(gh release view v0.8.2 --json targetCommitish --jq .targetCommitish)" = "$SOURCE_SHA"
+          if gh release view v0.9.1 --json isDraft >/dev/null 2>&1; then
+            test "$(gh release view v0.9.1 --json isDraft --jq .isDraft)" = true
+            test "$(gh release view v0.9.1 --json targetCommitish --jq .targetCommitish)" = "$SOURCE_SHA"
           else
-            gh release create v0.8.2 --target "$SOURCE_SHA" --title 'Tibetan Design Layout 0.8.2' --notes-file notes.md --draft
+            gh release create v0.9.1 --target "$SOURCE_SHA" --title 'Tibetan Design Layout 0.9.1' --notes-file notes.md --draft
           fi
-          gh release upload v0.8.2 release-assets/* --clobber
-          test "$(gh release view v0.8.2 --json assets --jq '.assets | length')" = 5
-          gh release edit v0.8.2 --notes-file notes.md --draft=false --latest
-          test "$(gh api "repos/$GH_REPO/releases/latest" --jq .tag_name)" = v0.8.2
-          echo "Published https://github.com/$GH_REPO/releases/tag/v0.8.2" >> "$GITHUB_STEP_SUMMARY"
+          gh release upload v0.9.1 release-assets/* --clobber
+          test "$(gh release view v0.9.1 --json assets --jq '.assets | length')" = 5
+          gh release edit v0.9.1 --notes-file notes.md --draft=false --latest
+          test "$(gh api "repos/$GH_REPO/releases/latest" --jq .tag_name)" = v0.9.1
+          echo "Published https://github.com/$GH_REPO/releases/tag/v0.9.1" >> "$GITHUB_STEP_SUMMARY"

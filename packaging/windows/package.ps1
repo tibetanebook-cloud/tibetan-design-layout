@@ -122,7 +122,7 @@ if (-not (Test-Path -LiteralPath (Join-Path $Portable 'Tibetan Design Layout.exe
 # %APPDATA% (#574; see apps/designcraft/src/profile.rs).
 Set-Content -Encoding ascii -Path (Join-Path $Portable 'portable.txt') -Value @(
   'Tibetan Design Layout portable: preferences, logs and crash recovery are kept in the Tibetan Design LayoutData folder',
-  'next to designcraft.exe. Delete this file to use %APPDATA%\Tibetan Design Layout instead.'
+  'next to Tibetan Design Layout.exe. Delete this file to use %APPDATA%\Tibetan Design Layout instead.'
 )
 foreach ($f in 'README.md', 'LICENSE', 'LICENSE-MIT', 'LICENSE-APACHE', 'NOTICE', 'ASSETS.md') {
   $p = Join-Path $Root $f

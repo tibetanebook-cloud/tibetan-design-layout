@@ -7290,3 +7290,24 @@ fn greek_text_gets_greek_hyphenation() {
     let el = hyphen::Lang::for_language("Greek").unwrap();
     assert_eq!(hyphen::hyphen_points_in("ανθρωπος", &hyphen::Limits::default(), el), vec![2, 5]);
 }
+
+#[test]
+fn tibetan_wraps_at_tsheg_without_spaces_in_both_composers() {
+    let text = "བསྒྲུབས་".repeat(30);
+    for composer in [Composer::SingleLine, Composer::Paragraph] {
+        let (mut d, sid, _) =
+            doc_with(&text, Rect::new(0.0, 0.0, 170.0, 4000.0), ParaAttrs { composer: Some(composer), hyphenate: Some(false), ..Default::default() });
+        d.story_mut(sid).unwrap().format_chars(0..text.len(), |f| {
+            f.over.font_family = Some("Noto Serif Tibetan".into());
+            f.over.size = Some(18.0);
+        });
+        let cs = compose_story(&d, sid, &ComposeOptions::default());
+        let lines = all_lines(&cs);
+        assert!(lines.len() > 2);
+        assert!(!cs.is_overset());
+        for line in &lines[..lines.len() - 1] {
+            assert!(text[..line.range.end].ends_with('་'), "{composer:?}: split a syllable: {:?}", line.range);
+            assert!(line.end_x <= line.x1 + 0.5, "Tibetan line exceeds frame");
+        }
+    }
+}

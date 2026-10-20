@@ -1,5 +1,56 @@
 //! Tibetan catalog; dictionary-guided entries, with English fallback.
 pub const TABLE: &[(&str, &str)] = &[
+    ("   Delete All Guides on Spread", "   ཤོག་ངོས་སྡེབ་ཀྱི་ལམ་སྟོན་ཐིག་ཚང་མ་སུབ"),
+    ("   Inches", "   ཨིན་ཅི"),
+    ("   Millimeters", "   མི་ལི་མི་ཊར"),
+    ("   Points", "   པོ་ཨིན་ཊི"),
+    ("  Close  ", "  ཁ་རྒྱག  "),
+    ("  OK  ", "  འགྲིག  "),
+    ("  Save  ", "  ཉར་ཚགས  "),
+    ("Align:", "སྙོམ་སྒྲིག:"),
+    ("Angle:", "ཟུར་ཚད:"),
+    ("Bottom:", "འོག:"),
+    ("Character:", "ཡིག་འབྲུ:"),
+    ("Color:", "ཁ་དོག:"),
+    ("Columns:", "ཀ་ཐིག:"),
+    ("Count:", "གྲངས་བཤེར:"),
+    ("Create Table…", "རེའུ་མིག་བཟོ་བ…"),
+    ("Effects…", "ནུས་འབྲས…"),
+    ("Filter:", "གདམ་གསེས:"),
+    ("Fitting:", "ཚད་མཐུན་སྒྲིག་པ:"),
+    ("Font Size:", "ཡིག་གཟུགས་ཆེ་ཆུང:"),
+    ("Glyphs…", "ཡིག་དབྱིབས…"),
+    ("Group:", "ཚོ་པ:"),
+    ("Gutter:", "སྟར་བར:"),
+    ("Height:", "མཐོ་ཚད:"),
+    ("Horizontal:", "འཕྲེད:"),
+    ("Language:", "སྐད་ཡིག:"),
+    ("Left:", "གཡོན:"),
+    ("Loading fonts…", "ཡིག་གཟུགས་ནང་འདྲེན་བྱེད་བཞིན་པ…"),
+    ("Margins:", "མཐའ་སྟོང:"),
+    ("Mode:", "རྣམ་པ:"),
+    ("Name:", "མིང:"),
+    ("Object:", "བྱ་དངོས:"),
+    ("Offset:", "གནས་སྤོའི་ཚད:"),
+    ("Opacity:", "བཀབ་ཚད:"),
+    ("Orientation:", "ཁ་ཕྱོགས:"),
+    ("Page ", "ཤོག་ངོས "),
+    ("Page:", "ཤོག་ངོས:"),
+    ("Pages:", "ཤོག་ངོས:"),
+    ("Paths:", "འགྲོ་ལམ:"),
+    ("Range:", "ཁྱབ་ཚད:"),
+    ("Right:", "གཡས:"),
+    ("Rows:", "འཕྲེད་སྟར:"),
+    ("Search:", "འཚོལ་ཞིབ:"),
+    ("Size:", "ཆེ་ཆུང:"),
+    ("Skew:", "གསེག་པ:"),
+    ("Subject:", "གཙོ་གཟུགས:"),
+    ("Text:", "ཡི་གེ:"),
+    ("Tint:", "ཚོས་མདངས:"),
+    ("Top:", "སྟེང:"),
+    ("Type:", "ཡི་གེ:"),
+    ("Vertical:", "གཞུང:"),
+    ("Width:", "ཞེང་ཚད:"),
     ("Selection Tool", "འདེམས་བྱེད་ལག་ཆ།"),
     ("Page Tool", "ཤོག་ངོས་ལག་ཆ།"),
     ("Gap Tool", "བར་སྟོང་ལག་ཆ།"),
@@ -129,7 +180,6 @@ pub const TABLE: &[(&str, &str)] = &[
     ("Book — Illustrated 8 × 10 in", "པར་རིས་ཅན་གྱི་དེབ་8 × 10 in"),
     ("Book — Dictionary A4 Two Columns", "སྟར་གཉིས་ཚིག་མཛོད་A4"),
     ("Book — Title Page 6 × 9 in", "དེབ་ཀྱི་མཚན་བྱང་6 × 9 in"),
-
     ("  Open Pecha sample  ", "  དཔེ་ཆའི་དཔེ་མཚོན་ཁ་འབྱེད།  "),
     ("Template Library", "དཔེ་གཞིའི་མཛོད"),
     ("Welcome to Tibetan Design Layout", "བོད་ཀྱི་ཤོག་ངོས་བཟོ་བཀོད་ལ་ཕེབས་པར་དགའ་བསུ་ཞུ།"),
@@ -1281,5 +1331,20 @@ mod tests {
         assert_eq!(crate::i18n::tr("bo", "File"), "ཡིག་ཆ");
         assert_eq!(crate::i18n::tr("bo", "Untranslated user label"), "Untranslated user label");
         assert!(crate::i18n::LANGUAGES.iter().any(|(code, _)| *code == "bo"));
+    }
+}
+
+#[cfg(test)]
+mod layout_coverage_tests {
+    #[test]
+    fn tibetan_tools_and_templates_are_translated_without_duplicate_keys() {
+        let catalog: std::collections::HashMap<_, _> = super::TABLE.iter().copied().collect();
+        assert_eq!(catalog.len(), super::TABLE.len(), "duplicate Tibetan keys");
+        for tool in designcraft_tools::TOOL_GROUPS.iter().flat_map(|g| g.iter()) {
+            assert_ne!(crate::i18n::tr("bo", tool.label), tool.label, "{}", tool.label);
+        }
+        for cmd in designcraft_engine::command_specs().into_iter().filter(|c| c.id.starts_with("template.")) {
+            assert_ne!(crate::i18n::tr("bo", cmd.label), cmd.label);
+        }
     }
 }
