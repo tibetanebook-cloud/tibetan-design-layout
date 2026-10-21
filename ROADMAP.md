@@ -642,3 +642,5 @@ The shared craft-installer UI preserves this revision's install options and prov
 - **2026-10-15** · Windows recovery folders validate the identity of the live locked file without reading it through a second handle. Missing or replaced locks disable writes and cleanup; regression tests cover retained exclusive locking and replacement-file protection. No readiness percentage change.
 
 - Tibetan Layout 0.9.1: upstream 443ea464 integrated with original Tibetan branding, expanded tool/menu translations and linked Pecha body stories; Tibetan tsheg wrapping regression coverage.
+
+- 2026-10-20: Updated Pecha regression tests for upstream copy-on-write documents and fallible serialization; verified Tibetan wrapping with the bundled font. Full platform validation remains pending.

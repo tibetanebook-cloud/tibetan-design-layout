@@ -1343,7 +1343,7 @@ mod layout_coverage_tests {
         for tool in designcraft_tools::TOOL_GROUPS.iter().flat_map(|g| g.iter()) {
             assert_ne!(crate::i18n::tr("bo", tool.label), tool.label, "{}", tool.label);
         }
-        for cmd in designcraft_engine::command_specs().into_iter().filter(|c| c.id.starts_with("template.")) {
+        for cmd in designcraft_engine::command_specs().iter().filter(|c| c.id.starts_with("template.")) {
             assert_ne!(crate::i18n::tr("bo", cmd.label), cmd.label);
         }
     }

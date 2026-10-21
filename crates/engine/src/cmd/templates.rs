@@ -337,7 +337,7 @@ mod tests {
         for t in TEMPLATES.iter().filter(|t| t.id.starts_with("pecha") && t.id != "pechaTitle") {
             let mut s = Session::new();
             create_pecha(&mut s, t.id).unwrap();
-            let doc = &mut s.active_mut().unwrap().doc;
+            let doc = std::sync::Arc::make_mut(&mut s.active_mut().unwrap().doc);
             let stories: Vec<_> = doc.stories.iter().filter(|(_, st)| st.frames.len() == 2).map(|(id, _)| *id).collect();
             assert_eq!(stories.len(), if t.bilingual { 2 } else { 1 }, "{}", t.id);
             for sid in stories {
@@ -364,7 +364,7 @@ mod tests {
             assert_eq!(doc.title, t.name);
             assert_eq!(doc.page_count(), if t.id.starts_with("pecha") && t.id != "pechaTitle" { 3 } else { 1 });
             assert!(!doc.stories.is_empty(), "{} has editable text", t.id);
-            let bytes = crate::cmd::file::to_bytes(doc);
+            let bytes = crate::cmd::file::to_bytes(doc).unwrap();
             let restored = crate::cmd::file::from_bytes(&bytes).unwrap();
             assert_eq!(restored.title, t.name);
             assert_eq!(restored.stories.len(), doc.stories.len());
