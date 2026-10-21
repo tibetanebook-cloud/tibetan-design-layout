@@ -1,14 +1,16 @@
 ---
-title: Can DesignCraft open InDesign files?
-description: DesignCraft opens and exports InDesign Markup (.idml) files. The Open dialog does not list InDesign's own .indd format.
+title: Can Tibetan Design Layout open Adobe InDesign files?
+description: Open .indd, .indt, and .idml files for editing, then save as .designcraft or export as IDML.
 order: 30
-verified: 0.7.1
+verified: 0.9.1
 ---
 
-Yes for IDML, the InDesign Markup format. DesignCraft can open `.idml` files and export them with **File**, then **Export IDML…**.
+Yes. Tibetan Design Layout can open InDesign Markup (`.idml`) files directly. It can also convert InDesign documents (`.indd`) and templates (`.indt`) to IDML during import, then open the converted layout for editing.
 
-The **Open…** dialog lists `.designcraft` and `.idml` files only, so it does not offer InDesign's own `.indd` files. See [Open a DesignCraft or InDesign (IDML) file](../guides/open-a-file.md).
+Choose **File**, then **Open…**, and select the file. You can also drop an `.indd` or `.indt` file into the app window. See [Open a document](../guides/open-a-file.md) for details.
 
-IDML import is not complete. Open issues in the tracker report that custom text-wrap boundaries ([#451](https://github.com/storytold/designcraft/issues/451)) and saved image clipping paths ([#450](https://github.com/storytold/designcraft/issues/450)) are lost when importing IDML, and that bullets and numbers in lists show as missing-font magenta in some templates ([#110](https://github.com/storytold/designcraft/issues/110)). Check your layout after importing.
+The imported document is editable in Tibetan Design Layout. **Save** or **Save As** stores it in the app's `.designcraft` format. To continue editing in Adobe InDesign, use **File**, then **Export IDML…**, and open the resulting `.idml` file in InDesign. Tibetan Design Layout does not save directly to Adobe's native `.indd` or `.indt` formats.
 
-DesignCraft can also export PDF (including PDF/X-4 and PDF/A-2b), PNG and EPUB. See [Export a PDF](../guides/export-a-pdf.md).
+Import conversion is not guaranteed to preserve every feature or match InDesign pixel for pixel. The project has not yet been validated against a representative set of real-world `.indd` files. Review the converted pages before relying on them, especially for complex layouts. Missing fonts and linked assets can also affect appearance; keep a `Document Fonts` folder and the document's `Links` folder with the source when available.
+
+Tibetan Design Layout can also export PDF, PNG, and EPUB. See [Export a PDF](../guides/export-a-pdf.md).
