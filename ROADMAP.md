@@ -644,3 +644,5 @@ The shared craft-installer UI preserves this revision's install options and prov
 - Tibetan Layout 0.9.1: upstream 443ea464 integrated with original Tibetan branding, expanded tool/menu translations and linked Pecha body stories; Tibetan tsheg wrapping regression coverage.
 
 - 2026-10-20: Updated Pecha regression tests for upstream copy-on-write documents and fallible serialization; verified Tibetan wrapping with the bundled font. Full platform validation remains pending.
+
+- 2026-10-21: Corrected upstream translation test fallout: added three Tibetan style-row labels and removed six stale Czech product-sibling descriptions.
