@@ -156,7 +156,7 @@ fn eps_idml_roundtrip_preserves_source_and_resource_type() {
         let source = s.doc().unwrap().doc.clone();
         let idml = designcraft_idml::export_idml(&source);
         let mut z = zip::ZipArchive::new(std::io::Cursor::new(&idml)).unwrap();
-        let names: Vec<String> = z.file_names().collect::<zip::result::ZipResult<Vec<_>>>().unwrap().into_iter().filter(|n| n.starts_with("Spreads/")).collect();
+        let names: Vec<String> = z.file_names().collect::<zip::result::ZipResult<Vec<_>>>().unwrap().into_iter().filter(|n| n.starts_with("Spreads/")).map(|n| n.into_owned()).collect();
         let mut xml = String::new();
         for name in names {
             z.by_name(&name).unwrap().read_to_string(&mut xml).unwrap();
