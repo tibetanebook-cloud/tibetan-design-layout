@@ -164,7 +164,7 @@ impl<'a> Package<'a> {
         }
         let mut lenient: HashMap<String, String> = HashMap::new();
         for i in 0..zip.len() {
-            let Some(name) = zip.name_for_index(i) else { continue };
+            let Some(name) = zip.name_for_index(i).transpose().map_err(|e| IdmlError::NotIdml(e.to_string()))? else { continue };
             if name.ends_with('/') {
                 continue;
             }
