@@ -605,6 +605,8 @@ pub struct DesignApp {
     /// Files the operating system asked to open (macOS Finder, Dock, Open With), opened once the
     /// window is ready; see [`DesignApp::open_documents_later`].
     os_documents: Vec<String>,
+    /// Crash recovery can read and compose many documents. Start it after the first window frame.
+    recovery_pending: bool,
     pub integrated_titlebar: bool,
     /// The desktop host uses our caption controls and window drag/resize regions (Windows).
     pub custom_titlebar: bool,
@@ -694,6 +696,7 @@ impl DesignApp {
             restyle: false,
             fonts_ready: false,
             os_documents: Vec::new(),
+            recovery_pending: false,
             integrated_titlebar: false,
             custom_titlebar: false,
             window_maximized: false,
@@ -1188,6 +1191,7 @@ impl DesignApp {
         self.drain_control(ctx);
         new_document::end_stale_preview(self);
         if self.fonts_ready {
+            self.open_recovery_later();
             self.drain_inbox();
             self.open_os_documents();
         }
@@ -1398,10 +1402,40 @@ impl DesignApp {
         self.os_documents.extend(paths);
     }
 
+    /// Defer crash recovery until the app has presented its first frame.
+    pub fn recover_documents_later(&mut self) {
+        self.recovery_pending = true;
+    }
+
+    fn open_recovery_later(&mut self) {
+        if !std::mem::take(&mut self.recovery_pending) {
+            return;
+        }
+        match self.session.execute("file.recovery.open", &json!({})) {
+            Ok(result) => {
+                if let Some(count) = result["opened"].as_array().map(Vec::len).filter(|count| *count > 0) {
+                    self.status(format!("Recovered {count} unsaved document{} from the last session.", if count == 1 { "" } else { "s" }));
+                }
+            }
+            Err(error) => {
+                log::warn!("couldn't recover documents: {error}");
+                self.status(format!("Couldn't recover documents: {error}"));
+            }
+        }
+    }
+
     fn open_os_documents(&mut self) {
-        for path in std::mem::take(&mut self.os_documents) {
+        // Open one item per frame so a batch launch keeps repainting and accepting input between
+        // documents. In particular, opening from the OS must never hold up the first window frame.
+        if !self.os_documents.is_empty() {
+            let path = self.os_documents.remove(0);
             if let Err(e) = self.open_file("file.open", json!({"path": path})) {
                 log::warn!("{path}: {e}");
+            }
+            if !self.os_documents.is_empty()
+                && let Some(ctx) = &self.egui_ctx
+            {
+                ctx.request_repaint();
             }
         }
     }

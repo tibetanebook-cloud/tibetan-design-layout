@@ -498,14 +498,12 @@ fn main() -> std::process::ExitCode {
                 let mut session = Session::new();
                 // Crash recovery: reopen what a previous run left unsaved, then keep it current.
                 session.recovery_dir = profile::recovery_dir();
-                let recovered = session.execute("file.recovery.open", &serde_json::json!({})).ok();
                 let mut app = DesignApp::new(session, services());
+                // Reopening or composing recovery data before the first frame made a slow start
+                // look like a black, frozen window. Let the start screen paint first.
+                app.recover_documents_later();
                 if let Some(line) = restarted.or_else(|| created.status_line()) {
                     app.status(line);
-                }
-                // Recovered documents matter more than the graphics note; both are in the log.
-                if let Some(n) = recovered.as_ref().and_then(|r| r["opened"].as_array()).map(Vec::len).filter(|n| *n > 0) {
-                    app.status(format!("Recovered {n} unsaved document{} from the last session.", if n == 1 { "" } else { "s" }));
                 }
                 load_prefs(&mut app);
                 // After `load_prefs`, which replaces the UI state and with it the status line.
@@ -521,11 +519,7 @@ fn main() -> std::process::ExitCode {
                 if sample {
                     let _ = app.run("file.newSample", serde_json::json!({}));
                 }
-                for f in files {
-                    if let Err(e) = app.open_file("file.open", serde_json::json!({"path": f})) {
-                        log::warn!("{f}: {e}");
-                    }
-                }
+                app.open_documents_later(files);
                 // The first frame is due from now (`gpu::watch_first_frame`).
                 created.ready();
                 Ok(Box::new(App {

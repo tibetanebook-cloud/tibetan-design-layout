@@ -1398,6 +1398,51 @@ fn draw_ports(
     }
 }
 
+const MAX_INVERTED_SELECTION_GLYPHS: usize = 1024;
+
+fn screen_quad_visible(poly: &[Pos2; 4], clip: Rect) -> bool {
+    if poly.iter().any(|p| !p.x.is_finite() || !p.y.is_finite()) {
+        return false;
+    }
+    let mut min = pos2(f32::INFINITY, f32::INFINITY);
+    let mut max = pos2(f32::NEG_INFINITY, f32::NEG_INFINITY);
+    for p in poly {
+        min.x = min.x.min(p.x);
+        min.y = min.y.min(p.y);
+        max.x = max.x.max(p.x);
+        max.y = max.y.max(p.y);
+    }
+    Rect::from_min_max(min, max).intersects(clip)
+}
+
+fn selection_quad_on_screen(q: &[Point; 4], m: Affine, xf: &Xf, clip: Rect) -> Option<[Pos2; 4]> {
+    let poly = q.map(|p| xf.to_screen(m * p));
+    screen_quad_visible(&poly, clip).then_some(poly)
+}
+
+fn selection_frame_visible(ft: &compose::FrameText, m: Affine, xf: &Xf, clip: Rect) -> bool {
+    ft.columns.is_empty()
+        || ft.columns.iter().any(|r| {
+            let q = [Point::new(r.x0, r.y0), Point::new(r.x1, r.y0), Point::new(r.x1, r.y1), Point::new(r.x0, r.y1)];
+            selection_quad_on_screen(&q, m, xf, clip).is_some()
+        })
+}
+
+fn screen_polygon_visible(poly: &[Pos2], clip: Rect) -> bool {
+    if poly.is_empty() || poly.iter().any(|p| !p.x.is_finite() || !p.y.is_finite()) {
+        return false;
+    }
+    let mut min = pos2(f32::INFINITY, f32::INFINITY);
+    let mut max = pos2(f32::NEG_INFINITY, f32::NEG_INFINITY);
+    for p in poly {
+        min.x = min.x.min(p.x);
+        min.y = min.y.min(p.y);
+        max.x = max.x.max(p.x);
+        max.y = max.y.max(p.y);
+    }
+    Rect::from_min_max(min, max).intersects(clip)
+}
+
 fn draw_text_selection(
     app: &DesignApp,
     painter: &egui::Painter,
@@ -1410,6 +1455,7 @@ fn draw_text_selection(
     let cs = app.session.cache.get(doc, ts.story, None);
     let range = ts.range();
     let tint = Color32::from_rgba_unmultiplied(80, 140, 255, 110);
+    let clip = painter.clip_rect();
     // Selected table cells: tint every selected cell.
     if let Some(sel) = cells.filter(|c| c.story == ts.story) {
         let selected = doc.story(sel.story).and_then(|s| s.tables.get(&sel.table)).map(|t| t.selected_owners(sel.range)).unwrap_or_default();
@@ -1435,15 +1481,23 @@ fn draw_text_selection(
         return;
     }
     let mut runs: Vec<(usize, Affine, Vec<[Point; 4]>, Vec<(usize, usize)>)> = Vec::new();
+    let mut outlined_glyphs = 0usize;
+    let mut too_many_glyphs = false;
     for (fi, ft) in cs.frames.iter().enumerate() {
         let Some((a, _)) = item_canvas_xf(doc, layout, ft.frame) else { continue };
         let Some(it) = doc.item(ft.frame) else { continue };
         let m = a * doc.text_xf(it);
+        let path_text = it.text_frame().is_some_and(|tf| tf.options.path.is_some());
+        let frame_visible = selection_frame_visible(ft, m, xf, clip);
         // Show the frame edge while typing.
-        for poly in path_screen(it, xf, a) {
-            painter.add(egui::Shape::line(poly, Stroke::new(1.0, layer_color(doc, it).gamma_multiply(0.6))));
+        if frame_visible {
+            for poly in path_screen(it, xf, a) {
+                if screen_polygon_visible(&poly, clip) {
+                    painter.add(egui::Shape::line(poly, Stroke::new(1.0, layer_color(doc, it).gamma_multiply(0.6))));
+                }
+            }
         }
-        if range.is_empty() {
+        if range.is_empty() || (!frame_visible && !path_text) {
             continue;
         }
         // Type on a path: the highlight bends with the text.
@@ -1454,6 +1508,10 @@ fn draw_text_selection(
                     continue;
                 }
                 for q in compose::highlight_quads(l, s, e, false) {
+                    let visible = q.map(|p| xf.to_screen(m * map.to_path(p)));
+                    if !screen_quad_visible(&visible, clip) {
+                        continue;
+                    }
                     let (x0, x1) = (q[0].x.min(q[1].x), q[0].x.max(q[1].x));
                     let (y0, y1) = (q[0].y.min(q[2].y), q[0].y.max(q[2].y));
                     // Short slices, each turned with the path.
@@ -1477,19 +1535,37 @@ fn draw_text_selection(
                 continue;
             }
             let past = e == l.range.end && range.end > l.range.end;
-            quads.extend(compose::highlight_quads(l, s, e, past));
+            let mut line_quads: Vec<_> =
+                compose::highlight_quads(l, s, e, past).into_iter().filter(|q| selection_quad_on_screen(q, m, xf, clip).is_some()).collect();
             // A selected drop cap is highlighted down to its baseline.
             if let Some(dc) = l.drop_cap {
                 let sel = l.glyphs.iter().filter(|g| g.len > 0 && g.byte < dc.end && g.byte >= s && g.byte < e);
                 let (a, b) = sel.fold((f64::INFINITY, f64::NEG_INFINITY), |(a, b), g| (a.min(g.x), b.max(g.x + g.adv)));
                 if a < b {
                     let r = dc.rect;
-                    quads.push([Point::new(a, r.y0), Point::new(b, r.y0), Point::new(b, r.y1), Point::new(a, r.y1)]);
+                    let q = [Point::new(a, r.y0), Point::new(b, r.y0), Point::new(b, r.y1), Point::new(a, r.y1)];
+                    if selection_quad_on_screen(&q, m, xf, clip).is_some() {
+                        line_quads.push(q);
+                    }
                 }
             }
-            for (gi, g) in l.glyphs.iter().enumerate() {
-                if g.visible && g.len > 0 && g.byte >= s && g.byte < e {
-                    glyphs.push((li, gi));
+            if line_quads.is_empty() {
+                continue;
+            }
+            quads.extend(line_quads);
+            // Once we know this is a large selection, the fallback paints only the selection
+            // bands. Stop scanning glyphs for outlines on this and subsequent lines.
+            if !too_many_glyphs {
+                for (gi, g) in l.glyphs.iter().enumerate() {
+                    if g.visible && g.len > 0 && g.byte >= s && g.byte < e {
+                        if outlined_glyphs == MAX_INVERTED_SELECTION_GLYPHS {
+                            too_many_glyphs = true;
+                            glyphs.clear();
+                            break;
+                        }
+                        glyphs.push((li, gi));
+                        outlined_glyphs += 1;
+                    }
                 }
             }
         }
@@ -1498,7 +1574,19 @@ fn draw_text_selection(
         }
     }
     if !runs.is_empty() {
-        draw_inverse_highlight(app, painter, xf, doc, &cs, ts.story, &runs);
+        if too_many_glyphs {
+            // Outline rasterization is costly for long passages. Keep the selection responsive
+            // and readable; the familiar inverse glyph treatment remains for smaller selections.
+            for (_, m, quads, _) in &runs {
+                for q in quads {
+                    if let Some(poly) = selection_quad_on_screen(q, *m, xf, clip) {
+                        painter.add(egui::Shape::convex_polygon(poly.to_vec(), tint, Stroke::NONE));
+                    }
+                }
+            }
+        } else {
+            draw_inverse_highlight(app, painter, xf, doc, &cs, ts.story, &runs);
+        }
     }
     if ts.is_caret()
         && let Some((fi, x, bl, asc, desc)) = compose::caret(&cs, ts.focus)
@@ -2997,6 +3085,18 @@ mod tests {
     use egui_kittest::{Harness, kittest::Queryable};
 
     use super::*;
+
+    #[test]
+    fn text_selection_culling_skips_quads_outside_the_canvas_clip() {
+        let clip = Rect::from_min_size(pos2(10.0, 10.0), vec2(30.0, 30.0));
+        let visible = [pos2(15.0, 15.0), pos2(20.0, 15.0), pos2(20.0, 20.0), pos2(15.0, 20.0)];
+        let outside = [pos2(60.0, 60.0), pos2(70.0, 60.0), pos2(70.0, 70.0), pos2(60.0, 70.0)];
+        let invalid = [pos2(f32::NAN, 15.0), pos2(20.0, 15.0), pos2(20.0, 20.0), pos2(15.0, 20.0)];
+        assert!(screen_quad_visible(&visible, clip));
+        assert!(!screen_quad_visible(&outside, clip));
+        assert!(!screen_quad_visible(&invalid, clip));
+        assert!(!screen_polygon_visible(&[], clip));
+    }
 
     #[test]
     fn a_press_after_a_drag_is_not_a_double_click() {
