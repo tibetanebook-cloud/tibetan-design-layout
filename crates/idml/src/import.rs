@@ -181,7 +181,7 @@ impl<'a> Package<'a> {
             return Ok(None);
         };
         let f = self.zip.by_index(i).map_err(|e| IdmlError::NotIdml(e.to_string()))?;
-        let part = f.name().to_string();
+        let part = f.name().map_err(|e| IdmlError::NotIdml(e.to_string()))?.into_owned();
         let limit = MAX_PART_BYTES.min(self.left);
         let too_big = || IdmlError::Part {
             part: part.clone(),
