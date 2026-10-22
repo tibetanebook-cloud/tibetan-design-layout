@@ -168,7 +168,7 @@ impl<'a> Package<'a> {
             if name.ends_with('/') {
                 continue;
             }
-            lenient.entry(normalize_part_name(name)).or_insert_with(|| name.to_string());
+            lenient.entry(normalize_part_name(&name)).or_insert_with(|| name.to_string());
         }
         Ok(Package { zip, lenient, left: MAX_TOTAL_BYTES })
     }
