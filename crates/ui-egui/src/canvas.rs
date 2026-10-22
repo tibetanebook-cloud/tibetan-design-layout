@@ -1398,7 +1398,7 @@ fn draw_ports(
     }
 }
 
-const MAX_INVERTED_SELECTION_GLYPHS: usize = 1024;
+const MAX_INVERTED_SELECTION_GLYPHS: usize = 256;
 
 fn screen_quad_visible(poly: &[Pos2; 4], clip: Rect) -> bool {
     if poly.iter().any(|p| !p.x.is_finite() || !p.y.is_finite()) {
