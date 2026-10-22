@@ -208,7 +208,7 @@ fn load_zip(bytes: &[u8]) -> Result<Document, FormatError> {
     let mut v: Value = serde_json::from_slice(&json).map_err(|e| FormatError::NotOurs(e.to_string()))?;
     upgrade_json(&mut v);
     let mut doc: Document = serde_json::from_value(v).map_err(|e| FormatError::NotOurs(e.to_string()))?;
-    let names: Vec<String> = z.file_names().map(str::to_string).collect();
+        let names: Vec<String> = z.file_names().map(|name| name.map(|name| name.into_owned()).map_err(|e| FormatError::NotOurs(e.to_string()))).collect::<std::result::Result<Vec<_>, _>>()?;
     // Files saved with one copy per placement: identical copies share one buffer as they are
     // read, so memory holds each distinct file once.
     let fingerprint = std::collections::hash_map::RandomState::new();
