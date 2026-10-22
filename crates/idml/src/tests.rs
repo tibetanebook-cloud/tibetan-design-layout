@@ -46,7 +46,7 @@ fn zip_text(bytes: &[u8], prefix: &str) -> String {
     let mut out = String::new();
     for i in 0..z.len() {
         let mut f = z.by_index(i).unwrap();
-        if f.name().starts_with(prefix) {
+        if f.name().unwrap().starts_with(prefix) {
             f.read_to_string(&mut out).unwrap();
         }
     }
@@ -1379,7 +1379,7 @@ fn left_aligned_anchored_x_offsets_flip_at_the_idml_boundary() {
     let mut stories = String::new();
     for i in 0..zip.len() {
         let mut f = zip.by_index(i).unwrap();
-        if f.name().starts_with("Stories/") {
+        if f.name().unwrap().starts_with("Stories/") {
             std::io::Read::read_to_string(&mut f, &mut stories).unwrap();
         }
     }
@@ -3570,7 +3570,7 @@ fn object_style_effects_round_trip() {
     let mut spreads = String::new();
     for i in 0..zip.len() {
         let mut f = zip.by_index(i).unwrap();
-        if f.name().starts_with("Spreads/") {
+        if f.name().unwrap().starts_with("Spreads/") {
             std::io::Read::read_to_string(&mut f, &mut spreads).unwrap();
         }
     }
